@@ -3470,10 +3470,9 @@
         // === PIANO DI STUDIO INTELLIGENTE ===
         function generatePianoStudio() {
             try {
-                const container = document.getElementById('pianoStudio');
-                if (!container) return;
-                
                 const materieInStudio = materie.filter(m => m.status !== 'completato');
+                
+                console.log('Generando piano per', materieInStudio.length, 'materie');
                 
                 if (materieInStudio.length === 0) {
                     showEmptyPlanState();
@@ -3495,6 +3494,8 @@
                 
                 // Aggiorna panoramica progressi
                 updateProgressOverview(materieInStudio);
+                
+                console.log('Piano generato con successo');
                 
             } catch (error) {
                 console.error('Errore nella generazione del piano:', error);
@@ -3544,6 +3545,8 @@
         }
 
         function updatePlanOverview(metrics) {
+            console.log('Aggiornando overview con metriche:', metrics);
+            
             const planSummary = document.getElementById('planSummary');
             const totalWeeklyHours = document.getElementById('totalWeeklyHours');
             const avgDailyHours = document.getElementById('avgDailyHours');
@@ -3551,13 +3554,15 @@
             const completionWeeks = document.getElementById('completionWeeks');
 
             if (planSummary) {
-                planSummary.textContent = `Piano ottimizzato per ${metrics.subjectsCount} materie con un carico di studio di ${metrics.totalWeeklyHours}h settimanali. Completamento stimato in ${metrics.estimatedCompletionWeeks} settimane.`;
+                const summaryText = `Piano ottimizzato per ${metrics.subjectsCount} materie con un carico di studio di ${metrics.totalWeeklyHours}h settimanali. Completamento stimato in ${metrics.estimatedCompletionWeeks || 'N/A'} settimane.`;
+                planSummary.textContent = summaryText;
+                console.log('Summary aggiornato:', summaryText);
             }
 
             if (totalWeeklyHours) totalWeeklyHours.textContent = `${metrics.totalWeeklyHours}h`;
             if (avgDailyHours) avgDailyHours.textContent = `${metrics.avgDailyHours}h`;
             if (totalPages) totalPages.textContent = metrics.totalRemainingPages;
-            if (completionWeeks) completionWeeks.textContent = metrics.estimatedCompletionWeeks;
+            if (completionWeeks) completionWeeks.textContent = metrics.estimatedCompletionWeeks || 'N/A';
         }
 
         function generateAISuggestions(materieInStudio, metrics) {
@@ -6470,8 +6475,104 @@
         }
 
         function showDayDetail(dateKey) {
-            // Implementazione placeholder per ora
-            console.log('Show day detail for:', dateKey);
+            const modal = document.getElementById('dayDetailModal');
+            const titleEl = document.getElementById('dayDetailTitle');
+            const contentEl = document.getElementById('dayDetailContent');
+            
+            if (!modal || !titleEl || !contentEl) return;
+            
+            const date = new Date(dateKey);
+            const dateStr = date.toLocaleDateString('it-IT', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            titleEl.textContent = `📅 ${dateStr}`;
+            
+            // Recupera sessioni per questo giorno
+            const dayData = calendarSessions[dateKey];
+            const todayDetailed = JSON.parse(localStorage.getItem('todayDetailedSessions')) || [];
+            const dayDetailedSessions = todayDetailed.filter(s => s.date === dateKey);
+            
+            let content = '';
+            
+            if (!dayData && dayDetailedSessions.length === 0) {
+                content = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>Nessuna attività registrata per questo giorno</p>
+                        <button class="btn btn-primary" onclick="addManualSessionForDate('${dateKey}')">➕ Aggiungi Sessione</button>
+                    </div>
+                `;
+            } else {
+                content = '<div style="display: flex; flex-direction: column; gap: 1rem;">';
+                
+                // Statistiche giorno
+                const totalSessions = (dayData?.completed || 0) + (dayData?.manual || 0);
+                const totalMinutes = dayDetailedSessions.reduce((sum, s) => sum + s.duration, 0);
+                
+                content += `
+                    <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;">
+                        <h4 style="color: var(--primary-light); margin-bottom: 0.5rem;">📊 Riepilogo Giorno</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">${totalSessions}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Sessioni</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning-color);">${Math.round(totalMinutes/60*10)/10}h</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">Tempo Studio</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Lista sessioni dettagliate
+                if (dayDetailedSessions.length > 0) {
+                    content += `
+                        <div>
+                            <h4 style="color: var(--primary-light); margin-bottom: 1rem;">📋 Sessioni Completate</h4>
+                            ${dayDetailedSessions.map(session => {
+                                const ratingStars = '★'.repeat(session.rating) + '☆'.repeat(4 - session.rating);
+                                return `
+                                    <div class="session-item" style="margin-bottom: 0.75rem;">
+                                        <div class="session-info">
+                                            <div>
+                                                <div class="session-time">${session.startTime} - ${session.endTime}</div>
+                                                <div>
+                                                    <span class="session-materia">${session.materia}</span>
+                                                    <span style="color: var(--text-secondary); margin-left: 1rem;">${session.duration} min</span>
+                                                </div>
+                                                ${session.note ? `<div class="session-note">"${session.note}"</div>` : ''}
+                                                <div class="session-rating">
+                                                    <span style="color: #fbbf24; font-size: 0.9rem;">${ratingStars}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="session-actions">
+                                            <button class="btn btn-danger btn-small" onclick="deleteSpecificSession(${session.id}); closeDayDetailModal();" title="Elimina sessione">🗑️</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+                
+                content += `
+                    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                        <button class="btn btn-primary" onclick="addManualSessionForDate('${dateKey}')">➕ Aggiungi Sessione</button>
+                        ${dayDetailedSessions.length > 0 ? `<button class="btn btn-danger" onclick="deleteAllDaySessionsModal('${dateKey}')">🗑️ Elimina Tutte</button>` : ''}
+                    </div>
+                `;
+                
+                content += '</div>';
+            }
+            
+            contentEl.innerHTML = content;
+            modal.style.display = 'flex';
         }
 
         function addManualSession() {
@@ -6490,11 +6591,124 @@
             }
         }
 
-        function saveManualSession() {
-            // Implementazione placeholder per ora
+        function addManualSessionForDate(dateKey) {
             const modal = document.getElementById('addSessionModal');
-            if (modal) modal.style.display = 'none';
-            showSuccessMessage('✅ Sessione aggiunta al calendario');
+            if (modal) {
+                document.getElementById('sessionDate').value = dateKey;
+                
+                // Popola dropdown materie
+                const materieSelect = document.getElementById('sessionMateria');
+                if (materieSelect) {
+                    materieSelect.innerHTML = '<option value="">Sessione generica</option>' +
+                        materie.map(m => `<option value="${m.id}">${m.nome}</option>`).join('');
+                }
+                
+                // Chiudi il modal del giorno
+                closeDayDetailModal();
+                modal.style.display = 'flex';
+            }
+        }
+
+        function saveManualSession() {
+            try {
+                const date = document.getElementById('sessionDate').value;
+                const materiaId = document.getElementById('sessionMateria').value;
+                const duration = parseInt(document.getElementById('sessionDuration').value);
+                const note = document.getElementById('manualSessionNote').value.trim();
+                
+                if (!date || !duration || duration < 5) {
+                    showSuccessMessage('❌ Compila tutti i campi obbligatori');
+                    return;
+                }
+                
+                const materiaName = materiaId ? 
+                    (materie.find(m => m.id === parseInt(materiaId))?.nome || 'Materia sconosciuta') : 
+                    'Sessione generica';
+                
+                // Crea entry calendario
+                if (!calendarSessions[date]) {
+                    calendarSessions[date] = { completed: 0, manual: 0 };
+                }
+                calendarSessions[date].manual = (calendarSessions[date].manual || 0) + 1;
+                
+                // Crea sessione dettagliata se è oggi
+                const today = new Date().toISOString().split('T')[0];
+                if (date === today) {
+                    const now = new Date();
+                    const sessionDetails = {
+                        id: Date.now(),
+                        startTime: now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+                        endTime: new Date(now.getTime() + duration * 60000).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+                        duration: duration,
+                        rating: 3, // Rating predefinito per sessioni manuali
+                        note: note,
+                        materia: materiaName,
+                        date: date,
+                        isManual: true
+                    };
+                    
+                    todayDetailedSessions.push(sessionDetails);
+                    localStorage.setItem('todayDetailedSessions', JSON.stringify(todayDetailedSessions));
+                }
+                
+                localStorage.setItem('calendarSessions', JSON.stringify(calendarSessions));
+                
+                // Aggiorna UI
+                renderCalendar();
+                updateTodaySessionsList();
+                
+                // Chiudi modal
+                closeAddSessionModal();
+                
+                showSuccessMessage(`✅ Sessione di ${duration} min aggiunta per ${new Date(date).toLocaleDateString('it-IT')}`);
+                
+            } catch (error) {
+                console.error('Errore nel salvataggio sessione manuale:', error);
+                showSuccessMessage('❌ Errore nel salvataggio della sessione');
+            }
+        }
+
+        function deleteAllDaySessionsModal(dateKey) {
+            const dayDetailedSessions = JSON.parse(localStorage.getItem('todayDetailedSessions')) || []
+                .filter(s => s.date === dateKey);
+                
+            if (dayDetailedSessions.length === 0) {
+                showSuccessMessage('❌ Nessuna sessione da eliminare');
+                return;
+            }
+            
+            const totalMinutes = dayDetailedSessions.reduce((sum, s) => sum + s.duration, 0);
+            const date = new Date(dateKey).toLocaleDateString('it-IT');
+            
+            const conferma = confirm(`Sei sicuro di voler eliminare tutte le ${dayDetailedSessions.length} sessioni del ${date}?\n\n` +
+                `Tempo totale: ${totalMinutes} minuti\n` +
+                `Questa azione non può essere annullata.`);
+            
+            if (!conferma) return;
+            
+            try {
+                // Rimuovi dalle sessioni dettagliate
+                const allDetailedSessions = JSON.parse(localStorage.getItem('todayDetailedSessions')) || [];
+                const remainingSessions = allDetailedSessions.filter(s => s.date !== dateKey);
+                localStorage.setItem('todayDetailedSessions', JSON.stringify(remainingSessions));
+                
+                // Pulisci calendario
+                if (calendarSessions[dateKey]) {
+                    delete calendarSessions[dateKey];
+                    localStorage.setItem('calendarSessions', JSON.stringify(calendarSessions));
+                }
+                
+                // Aggiorna UI
+                renderCalendar();
+                updateTodaySessionsList();
+                closeDayDetailModal();
+                
+                showSuccessMessage(`✅ Tutte le sessioni del ${date} sono state eliminate`);
+                
+            } catch (error) {
+                console.error('Errore nell\'eliminazione sessioni del giorno:', error);
+                showSuccessMessage('❌ Errore nell\'eliminazione delle sessioni');
+            }
         }
 
         // === MODAL FUNCTIONS ===
