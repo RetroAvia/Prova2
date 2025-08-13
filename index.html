@@ -1745,6 +1745,96 @@
         .select-none { user-select: none; }
         .transition { transition: all var(--transition); }
 
+        /* Piano dettagliato */
+        .plan-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .plan-subject-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: all var(--transition);
+        }
+
+        .plan-subject-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .plan-subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .plan-subject-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .plan-subject-priority {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .plan-subject-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .plan-stat {
+            text-align: center;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+        }
+
+        .plan-stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .plan-schedule {
+            margin-top: 1rem;
+        }
+
+        .plan-schedule-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .plan-schedule-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .plan-schedule-slot {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .container { padding: 15px; }
@@ -1778,6 +1868,7 @@
             .year-selector { flex-wrap: wrap; }
             .subject-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
             .subject-actions { width: 100%; justify-content: flex-start; }
+            .plan-detail-grid { grid-template-columns: 1fr; }
         }
 
         /* Scrollbar */
@@ -1967,6 +2058,26 @@
                         <div class="form-group">
                             <label for="cfu">CFU <span class="required">*</span></label>
                             <input type="number" id="cfu" min="1" max="30" required placeholder="Es. 9">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="anno">Anno <span class="required">*</span></label>
+                            <select id="anno" required>
+                                <option value="">Seleziona Anno</option>
+                                <option value="1">1° Anno</option>
+                                <option value="2">2° Anno</option>
+                                <option value="3">3° Anno</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="semestre">Semestre <span class="required">*</span></label>
+                            <select id="semestre" required>
+                                <option value="">Seleziona Semestre</option>
+                                <option value="1">I Semestre</option>
+                                <option value="2">II Semestre</option>
+                            </select>
                         </div>
                     </div>
 
@@ -2334,7 +2445,7 @@
                     </div>
                 </div>
 
-                <!-- Contenuto aggiuntivo del piano -->
+                <!-- Piano Dettagliato -->
                 <div class="card">
                     <h3>📋 Dettagli Piano</h3>
                     <div id="pianDetails">
@@ -3089,6 +3200,8 @@
                         ` : ''}
                         
                         <div class="subject-info">
+                            <div><strong>Anno:</strong> ${materia.anno}° Anno</div>
+                            <div><strong>Semestre:</strong> ${materia.semestre}° Semestre</div>
                             <div><strong>CFU:</strong> ${materia.cfu}</div>
                             <div><strong>Pagine:</strong> ${materia.pagine}</div>
                             <div><strong>Pagine/ora:</strong> ${materia.pagineOra || 8}</div>
@@ -3127,6 +3240,8 @@
                     const fields = {
                         nomeMateria: materia.nome || '',
                         cfu: materia.cfu || '',
+                        anno: materia.anno || '',
+                        semestre: materia.semestre || '',
                         pagine: materia.pagine || '',
                         pagineStudiate: materia.pagineStudiate || 0,
                         pagineOra: materia.pagineOra || 8,
@@ -3201,10 +3316,19 @@
                         APP.materie = APP.materie.filter(m => m.id !== id);
                         this.saveMaterie();
                         this.loadMaterie();
+                        
+                        // Rimuovi anche dal curriculum se presente
+                        const currSubjectIndex = APP.curriculum.findIndex(c => c.nome === materia.nome && c.anno === materia.anno && c.semestre === materia.semestre);
+                        if (currSubjectIndex !== -1) {
+                            APP.curriculum.splice(currSubjectIndex, 1);
+                            CurriculumManager.saveCurriculum();
+                        }
+                        
                         TodayScheduler.generateTodaySchedule();
                         PianoStudio.generatePianoStudio();
                         Statistics.updateStatistiche();
                         ExamManager.updateExamsSection();
+                        CurriculumManager.loadCurriculumData();
                         
                         Utils.showSuccessMessage('🗑️ Materia ed esame eliminati con successo');
                     }
@@ -3240,7 +3364,7 @@
                 };
 
                 if (APP.esami.length === 0) {
-                    Object.values(elements).forEach(el => el.textContent = '0');
+                    Object.values(elements).forEach(el => el && (el.textContent = '0'));
                     return;
                 }
 
@@ -3488,7 +3612,6 @@
                 if (!subject) return;
 
                 if (!subject.completato) {
-                    // Richiedi voto
                     const voto = prompt(`Inserisci il voto per "${subject.nome}" (18-30):`);
                     if (voto === null) return;
                     
@@ -4068,13 +4191,13 @@
             }
         };
 
-        // === ADDITIONAL FUNCTIONS ===
-        
-        // Funzioni globali necessarie
+        // === AGGIUNGE MATERIA CON COLLEGAMENTO CURRICULUM ===
         function addMateria() {
             try {
                 const nome = document.getElementById('nomeMateria').value.trim();
                 const cfu = parseInt(document.getElementById('cfu').value);
+                const anno = parseInt(document.getElementById('anno').value);
+                const semestre = parseInt(document.getElementById('semestre').value);
                 const pagine = parseInt(document.getElementById('pagine').value);
                 const pagineStudiate = parseInt(document.getElementById('pagineStudiate').value) || 0;
                 const pagineOra = parseInt(document.getElementById('pagineOra').value) || 8;
@@ -4083,7 +4206,7 @@
                 const dataEsame = document.getElementById('dataEsame').value;
                 const priorita = document.getElementById('priorita').value;
 
-                if (!nome || !cfu || !pagine) {
+                if (!nome || !cfu || !anno || !semestre || !pagine) {
                     Utils.showSuccessMessage('❌ Compila tutti i campi obbligatori');
                     return;
                 }
@@ -4113,6 +4236,8 @@
                     id: Date.now(),
                     nome,
                     cfu,
+                    anno,
+                    semestre,
                     pagine,
                     pagineStudiate,
                     pagineOra,
@@ -4128,11 +4253,37 @@
 
                 APP.materie.push(nuovaMateria);
                 MaterieManager.saveMaterie();
+                
+                // *** CORREZIONE PROBLEMA 1: Collegamento automatico con Curriculum ***
+                // Aggiungi automaticamente al curriculum se non esiste già
+                const existingCurrSubject = APP.curriculum.find(c => 
+                    c.nome === nome && c.anno === anno && c.semestre === semestre
+                );
+                
+                if (!existingCurrSubject) {
+                    const curriculumSubject = {
+                        id: Date.now() + 1,
+                        nome: nome,
+                        anno: anno,
+                        semestre: semestre,
+                        cfu: cfu,
+                        professore: '',
+                        note: 'Aggiunta automaticamente dalla sezione Materie',
+                        completato: false,
+                        dataCreazione: new Date().toISOString()
+                    };
+                    
+                    APP.curriculum.push(curriculumSubject);
+                    CurriculumManager.saveCurriculum();
+                }
+                
                 MaterieManager.loadMaterie();
                 
                 // Reset form
                 document.getElementById('nomeMateria').value = '';
                 document.getElementById('cfu').value = '';
+                document.getElementById('anno').value = '';
+                document.getElementById('semestre').value = '';
                 document.getElementById('pagine').value = '';
                 document.getElementById('pagineStudiate').value = '0';
                 document.getElementById('pagineOra').value = '8';
@@ -4145,10 +4296,12 @@
                 WeeklySlots.initializeWeeklySlots();
                 StarRating.setupStarRating();
                 
+                // Aggiorna tutte le sezioni collegate
                 TodayScheduler.generateTodaySchedule();
-                PianoStudio.generatePianoStudio();
+                PianoStudio.generatePianoStudio(); // *** CORREZIONE PROBLEMA 2 ***
+                CurriculumManager.loadCurriculumData();
                 
-                Utils.showSuccessMessage('✅ Materia aggiunta con successo!');
+                Utils.showSuccessMessage('✅ Materia aggiunta con successo e collegata al curriculum!');
                 
             } catch (error) {
                 console.error('Errore nell\'aggiunta materia:', error);
@@ -4175,7 +4328,6 @@
             APP.timerInterval = setInterval(() => {
                 if (APP.timerState.seconds === 0) {
                     if (APP.timerState.minutes === 0) {
-                        // Timer finished
                         clearInterval(APP.timerInterval);
                         completeSession();
                         return;
@@ -4225,7 +4377,7 @@
             APP.timerState.isRunning = false;
             
             if (!APP.timerState.isBreak) {
-                // Sessione di lavoro completata
+                // *** CORREZIONE PROBLEMA 3: Conteggio sessioni corretto ***
                 APP.timerState.sessionsToday++;
                 APP.studyData.totalSessions++;
                 
@@ -4308,7 +4460,7 @@
             APP.sessionRatings[today][hour].push(sessionData);
             localStorage.setItem('sessionRatings', JSON.stringify(APP.sessionRatings));
             
-            // Aggiungi a sessioni dettagliate di oggi
+            // *** CORREZIONE PROBLEMA 3: Aggiungi alla lista sessioni dettagliate ***
             APP.todayDetailedSessions.push(sessionData);
             localStorage.setItem('todayDetailedSessions', JSON.stringify(APP.todayDetailedSessions));
             
@@ -5095,6 +5247,7 @@
                     const planMetrics = this.calculatePlanMetrics(materieInStudio);
                     this.updatePlanOverview(planMetrics);
                     this.generateAISuggestions(materieInStudio, planMetrics);
+                    this.generatePlanDetails(materieInStudio); // *** CORREZIONE PROBLEMA 2 ***
                     
                 } catch (error) {
                     console.error('Errore nella generazione del piano:', error);
@@ -5209,10 +5362,103 @@
                 `).join('');
             },
 
+            // *** CORREZIONE PROBLEMA 2: Generazione dettagli piano ***
+            generatePlanDetails(materieInStudio) {
+                const detailsContainer = document.getElementById('pianDetails');
+                if (!detailsContainer) return;
+
+                if (materieInStudio.length === 0) {
+                    detailsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>Aggiungi delle materie per generare il tuo piano di studio personalizzato!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                detailsContainer.innerHTML = `
+                    <div class="plan-detail-grid">
+                        ${materieInStudio.map(materia => {
+                            const progress = Math.round(((materia.pagineStudiate || 0) / materia.pagine) * 100);
+                            const pagineRimanenti = materia.pagine - (materia.pagineStudiate || 0);
+                            
+                            let oreTotaliSettimanali = 0;
+                            let slotsInfo = 'Nessun slot definito';
+                            
+                            if (materia.slotSettimanali) {
+                                const slots = [];
+                                Object.entries(materia.slotSettimanali).forEach(([giorno, slotArray]) => {
+                                    slotArray.forEach(slot => {
+                                        const durata = Utils.calculateTaskDuration(slot.inizio, slot.fine);
+                                        oreTotaliSettimanali += durata;
+                                        slots.push(`${giorno.charAt(0).toUpperCase() + giorno.slice(1)}: ${slot.inizio}-${slot.fine}`);
+                                    });
+                                });
+                                
+                                if (slots.length > 0) {
+                                    slotsInfo = slots.join('<br>');
+                                }
+                            }
+                            
+                            const oreSettimanaliFormatted = Math.round(oreTotaliSettimanali / 60 * 10) / 10;
+                            const settimaneRimanenti = oreSettimanaliFormatted > 0 ? 
+                                Math.ceil(pagineRimanenti / ((oreSettimanaliFormatted) * (materia.pagineOra || 8))) : 'N/A';
+                            
+                            return `
+                                <div class="plan-subject-card">
+                                    <div class="plan-subject-header">
+                                        <div class="plan-subject-name">${materia.nome}</div>
+                                        <div class="plan-subject-priority priority-${materia.priorita}">${materia.priorita}</div>
+                                    </div>
+                                    
+                                    <div class="plan-subject-stats">
+                                        <div class="plan-stat">
+                                            <div class="plan-stat-number" style="color: var(--primary);">${progress}%</div>
+                                            <div class="plan-stat-label">Completato</div>
+                                        </div>
+                                        <div class="plan-stat">
+                                            <div class="plan-stat-number" style="color: var(--warning);">${pagineRimanenti}</div>
+                                            <div class="plan-stat-label">Pagine Rimanenti</div>
+                                        </div>
+                                        <div class="plan-stat">
+                                            <div class="plan-stat-number" style="color: var(--secondary);">${oreSettimanaliFormatted}h</div>
+                                            <div class="plan-stat-label">Ore/Settimana</div>
+                                        </div>
+                                        <div class="plan-stat">
+                                            <div class="plan-stat-number" style="color: var(--accent);">${settimaneRimanenti}</div>
+                                            <div class="plan-stat-label">Settimane Stimate</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="plan-schedule">
+                                        <div class="plan-schedule-title">📅 Programma Settimanale:</div>
+                                        <div class="plan-schedule-slots">
+                                            ${slotsInfo.split('<br>').map(slot => 
+                                                `<div class="plan-schedule-slot">${slot}</div>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                    
+                                    ${materia.dataEsame ? `
+                                        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border-left: 4px solid var(--warning);">
+                                            <strong>📅 Esame:</strong> ${new Date(materia.dataEsame).toLocaleDateString('it-IT')}<br>
+                                            <small style="color: var(--text-secondary);">Giorni rimanenti: ${Utils.getDaysToExam(materia.dataEsame) || 'N/A'}</small>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            },
+
             showEmptyPlanState() {
+                const detailsContainer = document.getElementById('pianDetails');
                 const suggestionsList = document.getElementById('suggestionsList');
-                if (suggestionsList) {
-                    suggestionsList.innerHTML = `
+                
+                if (detailsContainer) {
+                    detailsContainer.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-state-icon">📋</div>
                             <p>Aggiungi delle materie per generare il tuo piano di studio personalizzato!</p>
@@ -5221,6 +5467,15 @@
                                     ➕ Aggiungi Prima Materia
                                 </button>
                             </p>
+                        </div>
+                    `;
+                }
+                
+                if (suggestionsList) {
+                    suggestionsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>Aggiungi delle materie per ricevere suggerimenti personalizzati!</p>
                         </div>
                     `;
                 }
@@ -5276,6 +5531,16 @@
             
             APP.esami.push(nuovoEsame);
             
+            // Aggiorna curriculum se presente
+            const currSubject = APP.curriculum.find(c => c.nome === materia.nome && c.anno === materia.anno && c.semestre === materia.semestre);
+            if (currSubject) {
+                currSubject.completato = true;
+                currSubject.voto = voto;
+                currSubject.lode = lode && voto === 30;
+                currSubject.dataCompletamento = dataEsame || new Date().toISOString().split('T')[0];
+                CurriculumManager.saveCurriculum();
+            }
+            
             // Salva tutto
             MaterieManager.saveMaterie();
             ExamManager.saveEsami();
@@ -5283,6 +5548,7 @@
             // Aggiorna UI
             MaterieManager.loadMaterie();
             ExamManager.updateExamsSection();
+            CurriculumManager.loadCurriculumData();
             TodayScheduler.generateTodaySchedule();
             PianoStudio.generatePianoStudio();
             
