@@ -45,15 +45,21 @@
 
         .header p { font-size: clamp(1rem, 2.5vw, 1.2rem); opacity: 0.95; }
 
-        .nav-tabs {
-            display: flex; background: var(--bg-card); border-radius: var(--border-radius-lg);
-            padding: 8px; margin-bottom: 2rem; box-shadow: var(--shadow-lg);
-            overflow-x: auto; border: 1px solid var(--border); gap: 4px;
+        /* Navigazione migliorata */
+        .nav-container {
+            background: var(--bg-card); border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg); margin-bottom: 2rem; border: 1px solid var(--border);
             position: sticky; top: 20px; z-index: 100;
         }
 
+        .nav-tabs {
+            display: flex; padding: 8px; gap: 4px; overflow-x: auto;
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+
         .nav-tab {
-            flex: 1; min-width: 120px; padding: 16px 20px; border: none;
+            flex: 0 0 auto; min-width: 120px; padding: 16px 20px; border: none;
             background: transparent; color: var(--text-secondary); cursor: pointer;
             border-radius: var(--border-radius); transition: all var(--transition);
             font-weight: 600; font-size: 0.9rem; white-space: nowrap;
@@ -66,6 +72,32 @@
 
         .nav-tab:hover:not(.active) {
             background: var(--bg-hover); color: var(--text-primary); transform: translateY(-1px);
+        }
+
+        /* Menu burger per mobile */
+        .mobile-nav-toggle {
+            display: none; padding: 1rem; background: none; border: none;
+            color: var(--text-primary); font-size: 1.5rem; cursor: pointer;
+            border-radius: var(--border-radius);
+        }
+
+        .nav-dropdown {
+            display: none; position: absolute; top: 100%; left: 0; right: 0;
+            background: var(--bg-card); border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+            border-top: 1px solid var(--border); max-height: 60vh; overflow-y: auto;
+        }
+
+        .nav-dropdown.show { display: block; }
+
+        .nav-dropdown .nav-tab {
+            display: block; width: 100%; text-align: left; border-radius: 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs { display: none; }
+            .mobile-nav-toggle { display: block; }
+            .nav-container { position: relative; }
         }
 
         .section { display: none; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
@@ -170,6 +202,10 @@
             overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--border);
         }
 
+        .modal-large {
+            max-width: 800px; width: 95%;
+        }
+
         .star-rating { display: flex; gap: 6px; margin-top: 0.5rem; }
         .star {
             font-size: 1.8rem; color: var(--text-muted); cursor: pointer;
@@ -184,13 +220,21 @@
         .hidden { display: none !important; }
         .loading { opacity: 0.6; pointer-events: none; }
 
+        .session-item {
+            background: var(--bg-tertiary); border: 1px solid var(--border);
+            border-radius: var(--border-radius); padding: 1rem; margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all var(--transition);
+        }
+
+        .session-item:hover { transform: translateX(4px); }
+
         @media (max-width: 768px) {
             .container { padding: 15px; }
             .header { padding: 2rem 1rem; }
             .timer-display { font-size: 4rem; }
             .form-row { grid-template-columns: 1fr; }
             .card { padding: 1.5rem; }
-            .nav-tab { padding: 12px 16px; min-width: 100px; font-size: 0.9rem; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
@@ -216,6 +260,7 @@
 
         .calendar-day:hover { background: var(--bg-hover); transform: scale(1.02); }
         .calendar-day.today { border: 2px solid var(--accent); font-weight: 700; }
+        .calendar-day.has-sessions { border-left: 4px solid var(--primary); }
 
         .heatmap-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
@@ -262,17 +307,32 @@
         </header>
 
         <!-- Navigation -->
-        <nav class="nav-tabs">
-            <button class="nav-tab active" onclick="showSection('oggi', this)">🌅 Oggi</button>
-            <button class="nav-tab" onclick="showSection('materie', this)">📖 Materie</button>
-            <button class="nav-tab" onclick="showSection('curriculum', this)">🎓 Curriculum</button>
-            <button class="nav-tab" onclick="showSection('esami', this)">📊 Esami</button>
-            <button class="nav-tab" onclick="showSection('piano', this)">📋 Piano</button>
-            <button class="nav-tab" onclick="showSection('pomodoro', this)">🍅 Pomodoro</button>
-            <button class="nav-tab" onclick="showSection('calendario', this)">📅 Calendario</button>
-            <button class="nav-tab" onclick="showSection('statistiche', this)">📈 Statistiche</button>
-            <button class="nav-tab" onclick="showSection('helper', this)">🎯 Helper</button>
-            <button class="nav-tab" onclick="showSection('impostazioni', this)">⚙️ Impostazioni</button>
+        <nav class="nav-container">
+            <button class="mobile-nav-toggle" onclick="toggleMobileNav()">☰ Menu</button>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showSection('oggi', this)">🌅 Oggi</button>
+                <button class="nav-tab" onclick="showSection('materie', this)">📖 Materie</button>
+                <button class="nav-tab" onclick="showSection('curriculum', this)">🎓 Curriculum</button>
+                <button class="nav-tab" onclick="showSection('esami', this)">📊 Esami</button>
+                <button class="nav-tab" onclick="showSection('piano', this)">📋 Piano</button>
+                <button class="nav-tab" onclick="showSection('pomodoro', this)">🍅 Pomodoro</button>
+                <button class="nav-tab" onclick="showSection('calendario', this)">📅 Calendario</button>
+                <button class="nav-tab" onclick="showSection('statistiche', this)">📈 Statistiche</button>
+                <button class="nav-tab" onclick="showSection('helper', this)">🎯 Helper</button>
+                <button class="nav-tab" onclick="showSection('impostazioni', this)">⚙️ Impostazioni</button>
+            </div>
+            <div class="nav-dropdown" id="navDropdown">
+                <button class="nav-tab" onclick="showSection('oggi', this); closeMobileNav()">🌅 Oggi</button>
+                <button class="nav-tab" onclick="showSection('materie', this); closeMobileNav()">📖 Materie</button>
+                <button class="nav-tab" onclick="showSection('curriculum', this); closeMobileNav()">🎓 Curriculum</button>
+                <button class="nav-tab" onclick="showSection('esami', this); closeMobileNav()">📊 Esami</button>
+                <button class="nav-tab" onclick="showSection('piano', this); closeMobileNav()">📋 Piano</button>
+                <button class="nav-tab" onclick="showSection('pomodoro', this); closeMobileNav()">🍅 Pomodoro</button>
+                <button class="nav-tab" onclick="showSection('calendario', this); closeMobileNav()">📅 Calendario</button>
+                <button class="nav-tab" onclick="showSection('statistiche', this); closeMobileNav()">📈 Statistiche</button>
+                <button class="nav-tab" onclick="showSection('helper', this); closeMobileNav()">🎯 Helper</button>
+                <button class="nav-tab" onclick="showSection('impostazioni', this); closeMobileNav()">⚙️ Impostazioni</button>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -707,11 +767,11 @@
 
                 <div class="card">
                     <div class="flex gap-2 mb-2" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                        <h3 style="margin: 0;">📊 Sessioni di Oggi</h3>
+                        <h3 style="margin: 0;">📊 Tutte le Sessioni di Oggi</h3>
                         <button class="btn btn-danger btn-small" onclick="showDeleteAllTodaySessionsModal()">🗑️ Elimina tutte</button>
                     </div>
                     
-                    <div id="todaySessionsList">
+                    <div id="allTodaySessionsList">
                         <div class="empty-state">
                             <div class="empty-state-icon">🍅</div>
                             <p>Nessuna sessione completata oggi.</p>
@@ -917,6 +977,49 @@
         </div>
     </div>
 
+    <!-- Modal Timer Personalizzato -->
+    <div class="modal-overlay" id="customTimerModal">
+        <div class="modal">
+            <h3>⚙️ Timer Personalizzato</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="customWorkTime">Minuti di Studio:</label>
+                    <input type="number" id="customWorkTime" min="1" max="180" value="25" placeholder="25">
+                </div>
+                <div class="form-group">
+                    <label for="customBreakTime">Minuti di Pausa:</label>
+                    <input type="number" id="customBreakTime" min="0" max="60" value="5" placeholder="5">
+                </div>
+            </div>
+            <div class="flex gap-2 mt-2">
+                <button class="btn btn-primary" onclick="applyCustomTimer()">✅ Applica</button>
+                <button class="btn btn-secondary" onclick="closeCustomTimerModal()">❌ Annulla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dettagli Giorno -->
+    <div class="modal-overlay" id="dayDetailModal">
+        <div class="modal modal-large">
+            <h3 id="dayDetailTitle">📅 Dettagli del Giorno</h3>
+            
+            <div class="mb-2">
+                <button class="btn btn-primary btn-small" onclick="addSessionToDay()">➕ Aggiungi Sessione</button>
+            </div>
+            
+            <div id="daySessionsList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <p>Nessuna sessione per questo giorno.</p>
+                </div>
+            </div>
+            
+            <div class="mt-2">
+                <button class="btn btn-secondary" onclick="closeDayDetailModal()">❌ Chiudi</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="addSubjectModal">
         <div class="modal">
             <h3>➕ Aggiungi Materia al Curriculum</h3>
@@ -988,15 +1091,21 @@
                 <label for="sessionDate">Data:</label>
                 <input type="date" id="sessionDate">
             </div>
-            <div class="form-group">
-                <label for="sessionMateria">Materia:</label>
-                <select id="sessionMateria">
-                    <option value="">Sessione generica</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sessionMateria">Materia:</label>
+                    <select id="sessionMateria">
+                        <option value="">Sessione generica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sessionDuration">Durata (minuti):</label>
+                    <input type="number" id="sessionDuration" min="5" max="300" value="25">
+                </div>
             </div>
             <div class="form-group">
-                <label for="sessionDuration">Durata (minuti):</label>
-                <input type="number" id="sessionDuration" min="5" max="300" value="25">
+                <label for="sessionNote">Note (opzionale):</label>
+                <input type="text" id="sessionNote" placeholder="Es. Capitolo 3 - Derivate">
             </div>
             <div class="flex gap-2 mt-2">
                 <button class="btn btn-primary" onclick="saveManualSession()">✅ Aggiungi</button>
@@ -1042,6 +1151,8 @@
             currentSessionData: null,
             currentEditingExamId: null,
             currentCurriculumYear: 1,
+            currentDayDetailDate: null,
+            mobileNavOpen: false,
             
             universalMicroTasks: [
                 { text: "📖 Leggi il sommario del primo capitolo", durata: 5 },
@@ -1088,7 +1199,6 @@
                     setTimeout(() => document.body.removeChild(toast), 400);
                 }, 4000);
                 
-                // Add keyframes
                 if (!document.getElementById('toast-styles')) {
                     const style = document.createElement('style');
                     style.id = 'toast-styles';
@@ -1155,8 +1265,27 @@
         };
 
         // === NAVIGAZIONE ===
+        function toggleMobileNav() {
+            const dropdown = document.getElementById('navDropdown');
+            APP.mobileNavOpen = !APP.mobileNavOpen;
+            
+            if (APP.mobileNavOpen) {
+                dropdown.classList.add('show');
+            } else {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        function closeMobileNav() {
+            const dropdown = document.getElementById('navDropdown');
+            dropdown.classList.remove('show');
+            APP.mobileNavOpen = false;
+        }
+
         function showSection(sectionName, targetElement) {
             try {
+                closeMobileNav();
+                
                 document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
                 document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
 
@@ -1180,7 +1309,7 @@
                                 StarRating.setupStarRating();
                             }, 100);
                             break;
-                        case 'pomodoro': Sessions.updateTodaySessionsList(); break;
+                        case 'pomodoro': Sessions.updateAllTodaySessionsList(); break;
                         case 'esami': ExamManager.updateExamsSection(); break;
                         case 'curriculum': CurriculumManager.loadCurriculumData(); break;
                     }
@@ -1868,8 +1997,6 @@
                 }
 
                 APP.currentEditingExamId = esame.id;
-                
-                // Implementa modal di modifica esame se necessario
                 Utils.showSuccessMessage('Funzione di modifica esame in sviluppo');
             },
 
@@ -2137,7 +2264,7 @@
                 const slotId = `${giorno}-${Date.now()}`;
                 
                 const slotHTML = `
-                    <div id="${slotId}" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap;">
+                    <div id="${slotId}" class="slot-item" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); flex-wrap: wrap;">
                         <input type="time" value="09:00" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); width: auto; min-width: 120px;">
                         <span style="color: var(--text-secondary);">-</span>
                         <input type="time" value="11:00" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); width: auto; min-width: 120px;">
@@ -2193,8 +2320,8 @@
 
         // === SESSIONS ===
         const Sessions = {
-            updateTodaySessionsList() {
-                const container = document.getElementById('todaySessionsList');
+            updateAllTodaySessionsList() {
+                const container = document.getElementById('allTodaySessionsList');
                 if (!container) return;
                 
                 const today = new Date().toDateString();
@@ -2205,7 +2332,22 @@
                     localStorage.setItem('todayDetailedSessions', JSON.stringify([]));
                 }
                 
-                if (APP.todayDetailedSessions.length === 0) {
+                // Combina sessioni dal timer e da calendario
+                const allSessions = [...APP.todayDetailedSessions];
+                
+                // Aggiungi sessioni manuali dal calendario
+                if (APP.calendarSessions[today]) {
+                    APP.calendarSessions[today].forEach(session => {
+                        allSessions.push({
+                            ...session,
+                            rating: session.rating || 3,
+                            timestamp: session.timestamp,
+                            type: 'manual'
+                        });
+                    });
+                }
+                
+                if (allSessions.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <div class="empty-state-icon">🍅</div>
@@ -2215,7 +2357,7 @@
                     return;
                 }
                 
-                const sortedSessions = APP.todayDetailedSessions.sort((a, b) => 
+                const sortedSessions = allSessions.sort((a, b) => 
                     new Date(b.timestamp) - new Date(a.timestamp)
                 );
                 
@@ -2229,34 +2371,54 @@
                     const ratingStars = '★'.repeat(session.rating) + '☆'.repeat(4 - session.rating);
                     
                     return `
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; padding: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; flex-wrap: wrap;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 200px;">
+                        <div class="session-item">
+                            <div style="display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 200px;">
                                 <div style="font-weight: 700; min-width: 80px; color: var(--primary-light);">${time}</div>
-                                <div style="color: var(--secondary); font-weight: 600;">${session.materia}</div>
-                                <div style="color: var(--text-secondary); word-wrap: break-word;">${session.note || session.option || ''}</div>
+                                <div>
+                                    <div style="color: var(--secondary); font-weight: 600;">${session.materia}</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.9rem;">${session.note || session.option || ''}</div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem;">${session.duration || 25}min ${session.type === 'manual' ? '(Manuale)' : ''}</div>
+                                </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <span style="font-size: 1.2rem;">${ratingEmojis[session.rating - 1]}</span>
                                     <small style="color: var(--text-secondary);">${ratingStars}</small>
                                 </div>
-                                <button class="btn btn-danger btn-small" onclick="Sessions.deleteSession(${index})">🗑️</button>
+                                <button class="btn btn-danger btn-small" onclick="Sessions.deleteSession(${index}, '${session.type || 'timer'}')">🗑️</button>
                             </div>
                         </div>
                     `;
                 }).join('');
             },
             
-            deleteSession(index) {
+            deleteSession(index, type) {
                 if (confirm('Sei sicuro di voler eliminare questa sessione?')) {
-                    APP.todayDetailedSessions.splice(index, 1);
-                    APP.timerState.sessionsToday = Math.max(0, APP.timerState.sessionsToday - 1);
+                    const today = new Date().toDateString();
                     
-                    localStorage.setItem('todayDetailedSessions', JSON.stringify(APP.todayDetailedSessions));
-                    localStorage.setItem('sessionsToday', APP.timerState.sessionsToday);
+                    if (type === 'manual' && APP.calendarSessions[today]) {
+                        // Trova e rimuovi dalla sessione manuale
+                        const manualIndex = index - APP.todayDetailedSessions.length;
+                        if (manualIndex >= 0 && manualIndex < APP.calendarSessions[today].length) {
+                            APP.calendarSessions[today].splice(manualIndex, 1);
+                            if (APP.calendarSessions[today].length === 0) {
+                                delete APP.calendarSessions[today];
+                            }
+                            localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
+                        }
+                    } else {
+                        // Rimuovi da sessioni timer
+                        if (index < APP.todayDetailedSessions.length) {
+                            APP.todayDetailedSessions.splice(index, 1);
+                            APP.timerState.sessionsToday = Math.max(0, APP.timerState.sessionsToday - 1);
+                            localStorage.setItem('todayDetailedSessions', JSON.stringify(APP.todayDetailedSessions));
+                            localStorage.setItem('sessionsToday', APP.timerState.sessionsToday);
+                        }
+                    }
                     
-                    this.updateTodaySessionsList();
+                    this.updateAllTodaySessionsList();
                     Timer.updateSessionDisplay();
+                    Calendar.renderCalendar();
                     Utils.showSuccessMessage('🗑️ Sessione eliminata');
                 }
             }
@@ -2313,7 +2475,7 @@
                 
                 const sessions = this.getSessionsForDate(dateStr);
                 if (sessions.length > 0) {
-                    dayEl.style.borderLeft = '4px solid var(--primary)';
+                    dayEl.classList.add('has-sessions');
                 }
                 
                 dayEl.innerHTML = `
@@ -2336,6 +2498,7 @@
             getSessionsForDate(dateStr) {
                 const sessions = [];
                 
+                // Sessioni dal sistema rating
                 if (APP.sessionRatings[dateStr]) {
                     Object.keys(APP.sessionRatings[dateStr]).forEach(hour => {
                         APP.sessionRatings[dateStr][hour].forEach(session => {
@@ -2348,6 +2511,7 @@
                     });
                 }
                 
+                // Sessioni dal calendario
                 if (APP.calendarSessions[dateStr]) {
                     APP.calendarSessions[dateStr].forEach(session => {
                         sessions.push({
@@ -2357,12 +2521,133 @@
                     });
                 }
                 
+                // Sessioni dettagliate per oggi
+                if (dateStr === new Date().toDateString()) {
+                    APP.todayDetailedSessions.forEach(session => {
+                        const sessionDate = new Date(session.timestamp).toDateString();
+                        if (sessionDate === dateStr) {
+                            // Evita duplicati
+                            const exists = sessions.some(s => 
+                                Math.abs(new Date(s.timestamp) - new Date(session.timestamp)) < 60000
+                            );
+                            if (!exists) {
+                                sessions.push({
+                                    ...session,
+                                    type: 'today'
+                                });
+                            }
+                        }
+                    });
+                }
+                
                 return sessions.sort((a, b) => (a.hour || 0) - (b.hour || 0));
             },
             
             showDayDetail(dateStr, sessions) {
-                // Implementa modal dettagli giorno se necessario
-                Utils.showSuccessMessage(`Sessioni del ${new Date(dateStr).toLocaleDateString('it-IT')}: ${sessions.length}`);
+                APP.currentDayDetailDate = dateStr;
+                const modal = document.getElementById('dayDetailModal');
+                const title = document.getElementById('dayDetailTitle');
+                const sessionsList = document.getElementById('daySessionsList');
+                
+                const date = new Date(dateStr);
+                title.textContent = `📅 ${date.toLocaleDateString('it-IT', { 
+                    weekday: 'long', 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                })}`;
+                
+                if (sessions.length === 0) {
+                    sessionsList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <p>Nessuna sessione per questo giorno.</p>
+                        </div>
+                    `;
+                } else {
+                    sessionsList.innerHTML = sessions.map((session, index) => {
+                        const time = session.timestamp ? 
+                            new Date(session.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : 
+                            session.hour ? `${session.hour}:00` : '--:--';
+                        
+                        const ratingEmojis = ['😴', '😐', '😊', '🔥'];
+                        const rating = session.rating || 3;
+                        
+                        return `
+                            <div class="session-item">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                        <div style="font-weight: 700; color: var(--primary-light);">${time}</div>
+                                        <div style="color: var(--secondary); font-weight: 600;">${session.materia || 'Sessione generica'}</div>
+                                        <div style="font-size: 1.2rem;">${ratingEmojis[rating - 1]}</div>
+                                    </div>
+                                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                                        ${session.note || session.option || 'Nessuna nota'}
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem;">
+                                        ${session.duration || 25} minuti • ${session.type === 'manual' ? 'Aggiunta manualmente' : 'Completata con timer'}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button class="btn btn-warning btn-small" onclick="Calendar.editDaySession(${index})">✏️</button>
+                                    <button class="btn btn-danger btn-small" onclick="Calendar.deleteDaySession(${index})">🗑️</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                modal.style.display = 'flex';
+            },
+            
+            editDaySession(index) {
+                Utils.showSuccessMessage('⚙️ Funzione modifica sessione in sviluppo');
+            },
+            
+            deleteDaySession(index) {
+                if (!APP.currentDayDetailDate) return;
+                
+                if (confirm('Sei sicuro di voler eliminare questa sessione?')) {
+                    const dateStr = APP.currentDayDetailDate;
+                    const sessions = this.getSessionsForDate(dateStr);
+                    
+                    if (index >= 0 && index < sessions.length) {
+                        const session = sessions[index];
+                        
+                        // Rimuovi dalla struttura appropriata
+                        if (session.type === 'manual' && APP.calendarSessions[dateStr]) {
+                            const manualIndex = APP.calendarSessions[dateStr].findIndex(s => 
+                                s.timestamp === session.timestamp
+                            );
+                            if (manualIndex !== -1) {
+                                APP.calendarSessions[dateStr].splice(manualIndex, 1);
+                                if (APP.calendarSessions[dateStr].length === 0) {
+                                    delete APP.calendarSessions[dateStr];
+                                }
+                                localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
+                            }
+                        } else if (session.type === 'today') {
+                            const todayIndex = APP.todayDetailedSessions.findIndex(s => 
+                                s.timestamp === session.timestamp
+                            );
+                            if (todayIndex !== -1) {
+                                APP.todayDetailedSessions.splice(todayIndex, 1);
+                                APP.timerState.sessionsToday = Math.max(0, APP.timerState.sessionsToday - 1);
+                                localStorage.setItem('todayDetailedSessions', JSON.stringify(APP.todayDetailedSessions));
+                                localStorage.setItem('sessionsToday', APP.timerState.sessionsToday);
+                            }
+                        }
+                        
+                        // Aggiorna la visualizzazione
+                        const updatedSessions = this.getSessionsForDate(dateStr);
+                        this.showDayDetail(dateStr, updatedSessions);
+                        this.renderCalendar();
+                        Sessions.updateAllTodaySessionsList();
+                        Timer.updateSessionDisplay();
+                        
+                        Utils.showSuccessMessage('🗑️ Sessione eliminata');
+                    }
+                }
             },
             
             updateMonthStats() {
@@ -3235,7 +3520,8 @@
             document.getElementById('ratingModal').style.display = 'none';
             document.getElementById('sessionNote').value = '';
             
-            Sessions.updateTodaySessionsList();
+            Sessions.updateAllTodaySessionsList();
+            Calendar.renderCalendar();
             
             const messages = [
                 '😴 Riposa un po\' e riprova più tardi!',
@@ -3273,27 +3559,68 @@
             Utils.showSuccessMessage('🚀 Sessione di studio iniziata!');
         }
 
+        // Timer personalizzato - FUNZIONE COMPLETA
         function showCustomTimerDialog() {
-            Utils.showSuccessMessage('⚙️ Funzione timer personalizzato in sviluppo');
+            document.getElementById('customTimerModal').style.display = 'flex';
+        }
+
+        function closeCustomTimerModal() {
+            document.getElementById('customTimerModal').style.display = 'none';
+        }
+
+        function applyCustomTimer() {
+            const workTime = parseInt(document.getElementById('customWorkTime').value);
+            const breakTime = parseInt(document.getElementById('customBreakTime').value);
+            
+            if (!workTime || workTime < 1 || workTime > 180) {
+                Utils.showSuccessMessage('❌ Inserisci un tempo di studio valido (1-180 minuti)');
+                return;
+            }
+            
+            if (breakTime < 0 || breakTime > 60) {
+                Utils.showSuccessMessage('❌ Inserisci un tempo di pausa valido (0-60 minuti)');
+                return;
+            }
+            
+            // Deseleziona tutti i preset
+            document.querySelectorAll('.btn-secondary.active').forEach(btn => btn.classList.remove('active'));
+            
+            setPreset(workTime, breakTime, null);
+            closeCustomTimerModal();
+            
+            Utils.showSuccessMessage(`✅ Timer personalizzato: ${workTime}/${breakTime} minuti`);
         }
 
         function showDeleteAllTodaySessionsModal() {
-            if (APP.todayDetailedSessions.length === 0) {
+            const allSessions = [...APP.todayDetailedSessions];
+            const today = new Date().toDateString();
+            if (APP.calendarSessions[today]) {
+                allSessions.push(...APP.calendarSessions[today]);
+            }
+            
+            if (allSessions.length === 0) {
                 Utils.showSuccessMessage('📝 Non ci sono sessioni da eliminare');
                 return;
             }
             
-            const conferma = confirm(`Sei sicuro di voler eliminare tutte le ${APP.todayDetailedSessions.length} sessioni di oggi?\n\nQuesta azione non può essere annullata.`);
+            const conferma = confirm(`Sei sicuro di voler eliminare tutte le ${allSessions.length} sessioni di oggi?\n\nQuesta azione non può essere annullata.`);
             
             if (conferma) {
                 APP.todayDetailedSessions = [];
                 APP.timerState.sessionsToday = 0;
                 
+                // Rimuovi anche dal calendario
+                if (APP.calendarSessions[today]) {
+                    delete APP.calendarSessions[today];
+                    localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
+                }
+                
                 localStorage.setItem('todayDetailedSessions', JSON.stringify([]));
                 localStorage.setItem('sessionsToday', 0);
                 
-                Sessions.updateTodaySessionsList();
+                Sessions.updateAllTodaySessionsList();
                 Timer.updateSessionDisplay();
+                Calendar.renderCalendar();
                 Utils.showSuccessMessage('🗑️ Tutte le sessioni di oggi sono state eliminate');
             }
         }
@@ -3322,6 +3649,22 @@
             document.getElementById('addSessionModal').style.display = 'flex';
         }
 
+        function addSessionToDay() {
+            if (!APP.currentDayDetailDate) return;
+            
+            document.getElementById('sessionDate').value = new Date(APP.currentDayDetailDate).toISOString().split('T')[0];
+            
+            const select = document.getElementById('sessionMateria');
+            select.innerHTML = '<option value="">Sessione generica</option>';
+            APP.materie.forEach(materia => {
+                if (materia.status !== 'completato') {
+                    select.innerHTML += `<option value="${materia.nome}">${materia.nome}</option>`;
+                }
+            });
+            
+            document.getElementById('addSessionModal').style.display = 'flex';
+        }
+
         function closeAddSessionModal() {
             document.getElementById('addSessionModal').style.display = 'none';
         }
@@ -3330,6 +3673,7 @@
             const date = document.getElementById('sessionDate').value;
             const materia = document.getElementById('sessionMateria').value || 'Sessione generica';
             const duration = parseInt(document.getElementById('sessionDuration').value) || 25;
+            const note = document.getElementById('sessionNote').value || '';
             
             if (!date) {
                 Utils.showSuccessMessage('❌ Seleziona una data');
@@ -3342,19 +3686,44 @@
                 APP.calendarSessions[dateStr] = [];
             }
             
-            APP.calendarSessions[dateStr].push({
+            const sessionData = {
                 id: Date.now(),
                 materia,
                 duration,
+                note,
                 timestamp: new Date(date).toISOString(),
-                type: 'manual'
-            });
+                type: 'manual',
+                rating: 3 // Rating di default per sessioni manuali
+            };
             
+            APP.calendarSessions[dateStr].push(sessionData);
             localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
             
-            closeAddSessionModal();
+            // Se è oggi, aggiorna anche il conteggio sessioni
+            const today = new Date().toDateString();
+            if (dateStr === today) {
+                Sessions.updateAllTodaySessionsList();
+            }
+            
+            // Aggiorna calendario e chiudi modal
             Calendar.renderCalendar();
+            closeAddSessionModal();
+            
+            // Se modal dettagli giorno è aperto, aggiorna
+            if (APP.currentDayDetailDate === dateStr) {
+                const sessions = Calendar.getSessionsForDate(dateStr);
+                Calendar.showDayDetail(dateStr, sessions);
+            }
+            
+            // Reset form
+            document.getElementById('sessionNote').value = '';
+            
             Utils.showSuccessMessage('✅ Sessione aggiunta al calendario!');
+        }
+
+        function closeDayDetailModal() {
+            document.getElementById('dayDetailModal').style.display = 'none';
+            APP.currentDayDetailDate = null;
         }
 
         function saveExamGrade() {
@@ -3458,7 +3827,11 @@
         function showCurriculumYear(year, tabElement) {
             APP.currentCurriculumYear = year;
             
-            document.querySelectorAll('.year-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                if (tab.textContent.includes('Anno')) {
+                    tab.classList.remove('active');
+                }
+            });
             if (tabElement) tabElement.classList.add('active');
             
             document.querySelectorAll('.year-content').forEach(content => content.classList.add('hidden'));
@@ -3739,7 +4112,7 @@
             CurriculumManager.loadCurriculumData();
             SmartPlanner.generateTodaySchedule();
             PianoStudio.generatePianoStudio();
-            Sessions.updateTodaySessionsList();
+            Sessions.updateAllTodaySessionsList();
             Calendar.renderCalendar();
             Statistics.updateStatistiche();
             Heatmap.updateHeatmap();
@@ -3819,7 +4192,7 @@
                 SmartPlanner.generateTodaySchedule();
                 WeeklySlots.initializeWeeklySlots();
                 StarRating.setupStarRating();
-                Sessions.updateTodaySessionsList();
+                Sessions.updateAllTodaySessionsList();
                 Calendar.renderCalendar();
                 Heatmap.updateHeatmap();
                 Statistics.updateStatistiche();
@@ -3828,7 +4201,7 @@
                 PianoStudio.generatePianoStudio();
                 ProductivityAnalyzer.updateProductivitySection();
                 
-                console.log('📚 Piano Studio Smart v2.0 inizializzato con successo!');
+                console.log('📚 Piano Studio Smart v2.0 MIGLIORATO inizializzato con successo!');
                 
             } catch (error) {
                 console.error('❌ Errore nell\'inizializzazione:', error);
@@ -3839,14 +4212,24 @@
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal-overlay')) {
                 e.target.style.display = 'none';
+                if (e.target.id === 'dayDetailModal') {
+                    APP.currentDayDetailDate = null;
+                }
             }
         });
 
         // Previeni chiusura modal su click interno
-        document.querySelectorAll('.modal, .rating-modal').forEach(modal => {
+        document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
+        });
+
+        // Chiudi menu mobile quando si clicca fuori
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-container') && APP.mobileNavOpen) {
+                closeMobileNav();
+            }
         });
     </script>
 </body>
