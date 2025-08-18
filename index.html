@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piano Studio Smart - AI Enhanced Pro</title>
+    <title>Piano Studio Smart - AI Enhanced Pro v2.1</title>
     <style>
         :root {
             --primary: #8b5cf6; --primary-dark: #7c3aed; --primary-light: #a78bfa;
@@ -136,7 +136,7 @@
         .btn-small { padding: 0.75rem 1rem; font-size: 0.85rem; min-height: 40px; }
 
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
-        .form-group { margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.5rem; position: relative; }
 
         label {
             display: block; margin-bottom: 0.75rem; font-weight: 600;
@@ -289,6 +289,60 @@
 
         .tooltip.show { opacity: 1; }
 
+        /* NUOVE FUNZIONALITÀ */
+        .semester-badges {
+            display: flex; gap: 0.5rem; margin-top: 0.5rem;
+        }
+
+        .semester-badge {
+            padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;
+            background: rgba(139, 92, 246, 0.2); color: var(--primary-light);
+        }
+
+        .score-explanation {
+            background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px; padding: 1rem; margin: 1rem 0; cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .score-explanation:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+        .search-filter {
+            background: var(--bg-tertiary); border: 1px solid var(--border);
+            border-radius: var(--border-radius); padding: 1rem; margin-bottom: 1rem;
+        }
+
+        .filter-chips {
+            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+            background: var(--bg-card); border: 1px solid var(--border); cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .filter-chip:hover { background: var(--primary); color: white; }
+        .filter-chip.active { background: var(--primary); color: white; }
+
+        .notification-banner {
+            position: fixed; top: 80px; right: 20px; max-width: 400px;
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white; padding: 1rem; border-radius: var(--border-radius);
+            box-shadow: var(--shadow-xl); z-index: 10000; transform: translateX(100%);
+            transition: all var(--transition);
+        }
+
+        .notification-banner.show { transform: translateX(0); }
+
+        .backup-indicator {
+            position: fixed; bottom: 20px; right: 20px; padding: 0.5rem 1rem;
+            background: var(--success); color: white; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 600; opacity: 0; transition: all var(--transition);
+        }
+
+        .backup-indicator.show { opacity: 1; }
+
         /* Utilità */
         .text-center { text-align: center; }
         .mb-2 { margin-bottom: 1rem; }
@@ -296,14 +350,29 @@
         .flex { display: flex; }
         .gap-2 { gap: 1rem; }
         .required { color: var(--danger); }
+
+        /* Animazioni migliorate */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in-up { animation: fadeInUp 0.6s ease; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse { animation: pulse 2s infinite; }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1>🚀 Piano Studio Smart AI Pro</h1>
-            <p>Il tuo assistente intelligente anti-procrastinazione con gestione esami completa</p>
+            <h1>🚀 Piano Studio Smart AI Pro v2.1</h1>
+            <p>Il tuo assistente intelligente anti-procrastinazione con gestione esami completa - Università di Napoli Vanvitelli</p>
         </header>
 
         <!-- Navigation -->
@@ -335,11 +404,27 @@
             </div>
         </nav>
 
+        <!-- Notification Banner -->
+        <div class="notification-banner" id="notificationBanner">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 700;">📅 Promemoria Esame</div>
+                    <div id="notificationText">Hai un esame tra 7 giorni!</div>
+                </div>
+                <button onclick="hideNotification()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">×</button>
+            </div>
+        </div>
+
+        <!-- Backup Indicator -->
+        <div class="backup-indicator" id="backupIndicator">
+            💾 Backup automatico salvato
+        </div>
+
         <!-- Main Content -->
         <div class="main-content">
             <!-- Sezione OGGI -->
             <section id="oggi" class="section active">
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>🌅 Il Tuo Piano di Oggi</h3>
                     
                     <div id="smartPlanningAlert" class="card hidden" style="background: linear-gradient(135deg, var(--secondary), var(--secondary-dark)); color: white; margin-bottom: 2rem;">
@@ -402,7 +487,25 @@
                     <p style="font-size: 1.1rem; opacity: 0.9;">giorni consecutivi</p>
                 </div>
 
-                <div class="card">
+                <!-- Filtri e Ricerca -->
+                <div class="search-filter fade-in-up">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="searchMateria">🔍 Cerca Materia</label>
+                            <input type="text" id="searchMateria" placeholder="Cerca per nome..." onkeyup="filterMaterie()">
+                        </div>
+                        <div class="form-group">
+                            <label>📊 Filtra per Status</label>
+                            <div class="filter-chips">
+                                <div class="filter-chip active" onclick="toggleFilter('all', this)">Tutte</div>
+                                <div class="filter-chip" onclick="toggleFilter('studio', this)">In Studio</div>
+                                <div class="filter-chip" onclick="toggleFilter('completato', this)">Completate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card fade-in-up">
                     <h3>➕ Aggiungi Nuova Materia</h3>
                     <div class="form-row">
                         <div class="form-group">
@@ -431,6 +534,7 @@
                                 <option value="">Seleziona Semestre</option>
                                 <option value="1">I Semestre</option>
                                 <option value="2">II Semestre</option>
+                                <option value="annuale">Annuale (Entrambi i Semestri)</option>
                             </select>
                         </div>
                     </div>
@@ -489,7 +593,7 @@
                     <button type="button" class="btn btn-primary" onclick="addMateria()">✅ Aggiungi Materia</button>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>📚 Le Tue Materie</h3>
                     <div id="materieList">
                         <div class="empty-state">
@@ -514,7 +618,7 @@
 
                 <div id="curriculumContainer">
                     <div id="year-1" class="year-content active">
-                        <div class="card">
+                        <div class="card fade-in-up">
                             <div class="flex gap-2 mb-2" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
                                 <h3>🎓 Primo Anno</h3>
                                 <div class="flex gap-2" style="flex-wrap: wrap;">
@@ -533,7 +637,7 @@
                                 </div>
                             </div>
                             
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top: 2rem;">
                                 <div>
                                     <h4 style="color: var(--secondary); margin-bottom: 1rem;">📚 I Semestre</h4>
                                     <div id="year1-semester1-subjects">
@@ -552,12 +656,21 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div>
+                                    <h4 style="color: var(--accent); margin-bottom: 1rem;">📅 Annuali</h4>
+                                    <div id="year1-annuale-subjects">
+                                        <div class="empty-state">
+                                            <div class="empty-state-icon">📖</div>
+                                            <p>Nessuna materia annuale</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="year-2" class="year-content hidden">
-                        <div class="card">
+                        <div class="card fade-in-up">
                             <div class="flex gap-2 mb-2" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
                                 <h3>🎓 Secondo Anno</h3>
                                 <div class="flex gap-2" style="flex-wrap: wrap;">
@@ -576,7 +689,7 @@
                                 </div>
                             </div>
                             
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top: 2rem;">
                                 <div>
                                     <h4 style="color: var(--secondary); margin-bottom: 1rem;">📚 I Semestre</h4>
                                     <div id="year2-semester1-subjects">
@@ -595,12 +708,21 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div>
+                                    <h4 style="color: var(--accent); margin-bottom: 1rem;">📅 Annuali</h4>
+                                    <div id="year2-annuale-subjects">
+                                        <div class="empty-state">
+                                            <div class="empty-state-icon">📖</div>
+                                            <p>Nessuna materia annuale</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="year-3" class="year-content hidden">
-                        <div class="card">
+                        <div class="card fade-in-up">
                             <div class="flex gap-2 mb-2" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
                                 <h3>🎓 Terzo Anno</h3>
                                 <div class="flex gap-2" style="flex-wrap: wrap;">
@@ -619,7 +741,7 @@
                                 </div>
                             </div>
                             
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top: 2rem;">
                                 <div>
                                     <h4 style="color: var(--secondary); margin-bottom: 1rem;">📚 I Semestre</h4>
                                     <div id="year3-semester1-subjects">
@@ -638,6 +760,15 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div>
+                                    <h4 style="color: var(--accent); margin-bottom: 1rem;">📅 Annuali</h4>
+                                    <div id="year3-annuale-subjects">
+                                        <div class="empty-state">
+                                            <div class="empty-state-icon">📖</div>
+                                            <p>Nessuna materia annuale</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -646,7 +777,7 @@
 
             <!-- Sezione Esami -->
             <section id="esami" class="section">
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>📊 Statistiche Esami</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -668,7 +799,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>🎓 Esami Sostenuti</h3>
                     <div id="examsList">
                         <div class="empty-state">
@@ -681,9 +812,29 @@
 
             <!-- Sezione Piano -->
             <section id="piano" class="section">
-                <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
+                <div class="card fade-in-up" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
                     <h4>🎯 Piano di Studio Intelligente</h4>
                     <p id="planSummary">Caricamento piano personalizzato...</p>
+                    
+                    <!-- Spiegazione Score -->
+                    <div class="score-explanation" onclick="toggleScoreExplanation()" style="margin: 1.5rem 0; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h5 style="margin: 0; color: white;">🧮 Come Funziona lo Score Intelligente?</h5>
+                            <span id="scoreToggleIcon" style="color: white; font-size: 1.2rem;">▼</span>
+                        </div>
+                        <div id="scoreExplanationDetails" class="hidden" style="margin-top: 1rem; font-size: 0.9rem; line-height: 1.5;">
+                            <p><strong>Lo Score rappresenta l'urgenza e importanza di una materia:</strong></p>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                <li><strong>Giorni all'esame:</strong> Più è vicino l'esame, più sale lo score (max 40 punti)</li>
+                                <li><strong>Priorità:</strong> Alta=25pt, Media=15pt, Bassa=5pt</li>
+                                <li><strong>Difficoltà:</strong> Ogni stella aggiunge 4 punti</li>
+                                <li><strong>CFU:</strong> Più CFU = più importante (max 15 punti)</li>
+                                <li><strong>Progresso:</strong> Materie poco avanzate hanno bonus priorità</li>
+                            </ul>
+                            <p><strong>Score più alto = Studiare per primo! 🎯</strong></p>
+                        </div>
+                    </div>
+                    
                     <div class="stats-grid mt-2">
                         <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: var(--border-radius); text-align: center;">
                             <div id="totalWeeklyHours" style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.25rem;">0h</div>
@@ -704,7 +855,7 @@
                     </div>
                 </div>
 
-                <div class="card" style="background: rgba(6, 214, 160, 0.1); border: 1px solid rgba(6, 214, 160, 0.3);">
+                <div class="card fade-in-up" style="background: rgba(6, 214, 160, 0.1); border: 1px solid rgba(6, 214, 160, 0.3);">
                     <h3 style="color: var(--secondary);">🤖 Suggerimenti AI</h3>
                     <div id="suggestionsList">
                         <div style="background: rgba(6, 214, 160, 0.05); border: 1px solid rgba(6, 214, 160, 0.2); border-radius: 12px; padding: 1rem;">
@@ -714,7 +865,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>📋 Dettagli Piano</h3>
                     <div id="pianDetails">
                         <div class="empty-state">
@@ -727,7 +878,7 @@
 
             <!-- Sezione Pomodoro -->
             <section id="pomodoro" class="section">
-                <div class="card" style="background: var(--bg-tertiary); border: 1px solid var(--border);">
+                <div class="card fade-in-up" style="background: var(--bg-tertiary); border: 1px solid var(--border);">
                     <h4>🎯 Obiettivo Giornaliero</h4>
                     <div class="flex gap-2" style="align-items: center; margin-top: 1rem; flex-wrap: wrap;">
                         <label for="dailyGoal" style="margin: 0;">Pomodori da completare oggi:</label>
@@ -736,7 +887,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <div style="text-align: center;">
                         <h3>🍅 Timer Pomodoro</h3>
                         
@@ -765,7 +916,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <div class="flex gap-2 mb-2" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <h3 style="margin: 0;">📊 Tutte le Sessioni di Oggi</h3>
                         <button class="btn btn-danger btn-small" onclick="showDeleteAllTodaySessionsModal()">🗑️ Elimina tutte</button>
@@ -782,7 +933,7 @@
 
             <!-- Sezione Calendario -->
             <section id="calendario" class="section">
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>📅 Navigazione Calendario</h3>
                     <div class="flex gap-2" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
                         <div class="flex gap-2" style="align-items: center;">
@@ -797,7 +948,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <div style="background: var(--bg-card); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); border: 1px solid var(--border);">
                         <div style="display: grid; grid-template-columns: repeat(7, 1fr); background: var(--bg-tertiary); border-bottom: 1px solid var(--border);">
                             <div style="padding: 1rem 0.5rem; text-align: center; font-weight: 600; color: var(--primary-light);">Lun</div>
@@ -812,7 +963,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>📊 Statistiche del Mese</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -837,7 +988,7 @@
 
             <!-- Sezione Statistiche -->
             <section id="statistiche" class="section">
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>📊 Statistiche e Progressi</h3>
                     <div id="statisticheContent">
                         <div class="empty-state">
@@ -847,7 +998,7 @@
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card fade-in-up">
                     <h3>🔥 Heatmap Oraria della Produttività</h3>
                     <p style="color: var(--text-secondary); margin-bottom: 1rem;">
                         Visualizza i tuoi momenti più produttivi durante la giornata
@@ -895,7 +1046,7 @@
 
             <!-- Sezione Helper -->
             <section id="helper" class="section">
-                <div class="card" style="background: linear-gradient(135deg, var(--accent), #d97706); color: white;">
+                <div class="card fade-in-up" style="background: linear-gradient(135deg, var(--accent), #d97706); color: white;">
                     <h3>🎯 Assistente Organizzazione Semestre</h3>
                     <p style="margin-bottom: 1.5rem; opacity: 0.9;">Non sai come organizzarti? Lascia che ti guidi nella pianificazione!</p>
                     
@@ -917,7 +1068,7 @@
                     </div>
                 </div>
 
-                <div class="card hidden" id="helperResults">
+                <div class="card hidden fade-in-up" id="helperResults">
                     <h3>📋 Piano Raccomandato</h3>
                     <div id="helperContent"></div>
                 </div>
@@ -925,7 +1076,7 @@
 
             <!-- Sezione Impostazioni -->
             <section id="impostazioni" class="section">
-                <div class="card" style="background: linear-gradient(135deg, var(--danger), #dc2626); color: white; text-align: center;">
+                <div class="card fade-in-up" style="background: linear-gradient(135deg, var(--danger), #dc2626); color: white; text-align: center;">
                     <h3>⚙️ Impostazioni App</h3>
                     <p style="margin-bottom: 1.5rem;">Gestisci i dati dell'applicazione e le configurazioni</p>
                     
@@ -939,6 +1090,29 @@
                         <button onclick="showResetConfirmation()" style="background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 1rem 2rem; border-radius: var(--border-radius); cursor: pointer; font-weight: 600; transition: all var(--transition);">
                             🗑️ Reset Completo
                         </button>
+                    </div>
+                </div>
+
+                <div class="card fade-in-up">
+                    <h3>🔧 Preferenze App</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="autoBackup">💾 Backup Automatico</label>
+                            <select id="autoBackup" onchange="updateAutoBackup()">
+                                <option value="disabled">Disabilitato</option>
+                                <option value="daily" selected>Giornaliero</option>
+                                <option value="weekly">Settimanale</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="examNotifications">🔔 Notifiche Esami</label>
+                            <select id="examNotifications" onchange="updateExamNotifications()">
+                                <option value="disabled">Disabilitate</option>
+                                <option value="7days" selected>7 giorni prima</option>
+                                <option value="3days">3 giorni prima</option>
+                                <option value="1day">1 giorno prima</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1041,6 +1215,7 @@
                     <select id="currSubjectSemester" required>
                         <option value="1">I Semestre</option>
                         <option value="2">II Semestre</option>
+                        <option value="annuale">Annuale (Entrambi)</option>
                     </select>
                 </div>
             </div>
@@ -1153,6 +1328,8 @@
             currentCurriculumYear: 1,
             currentDayDetailDate: null,
             mobileNavOpen: false,
+            currentFilter: 'all',
+            autoBackupEnabled: localStorage.getItem('autoBackup') !== 'disabled',
             
             universalMicroTasks: [
                 { text: "📖 Leggi il sommario del primo capitolo", durata: 5 },
@@ -1230,25 +1407,97 @@
                 return hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
             },
 
+            // ALGORITMO DI PRIORITÀ MIGLIORATO
             calculateSmartPriority(materia) {
                 let score = 0;
+                let explanations = [];
+                
+                // 1. URGENZA ESAME (peso maggiore)
                 const daysToExam = this.getDaysToExam(materia.dataEsame);
                 if (daysToExam !== null) {
-                    if (daysToExam <= 7) score += 40;
-                    else if (daysToExam <= 14) score += 35;
-                    else if (daysToExam <= 30) score += 25;
-                    else if (daysToExam <= 60) score += 15;
-                    else score += 5;
+                    if (daysToExam <= 3) {
+                        score += 50;
+                        explanations.push("🚨 URGENTISSIMO: Esame tra 3 giorni!");
+                    } else if (daysToExam <= 7) {
+                        score += 45;
+                        explanations.push("🔥 URGENTE: Esame entro una settimana");
+                    } else if (daysToExam <= 14) {
+                        score += 35;
+                        explanations.push("⚡ Esame tra 2 settimane");
+                    } else if (daysToExam <= 30) {
+                        score += 25;
+                        explanations.push("📅 Esame entro un mese");
+                    } else if (daysToExam <= 60) {
+                        score += 15;
+                        explanations.push("📆 Esame tra 1-2 mesi");
+                    } else {
+                        score += 5;
+                        explanations.push("🗓️ Esame ancora lontano");
+                    }
                 }
+                
+                // 2. PRIORITÀ MANUALE
                 const priorityMap = { 'alta': 25, 'media': 15, 'bassa': 5 };
-                score += priorityMap[materia.priorita] || 15;
-                score += (materia.difficolta || 3) * 4;
-                score += Math.min(materia.cfu * 1.5, 15);
+                const priorityScore = priorityMap[materia.priorita] || 15;
+                score += priorityScore;
+                explanations.push(`🎯 Priorità ${materia.priorita}: +${priorityScore}pt`);
+                
+                // 3. DIFFICOLTÀ PERCEPITA
+                const difficultyScore = (materia.difficolta || 3) * 4;
+                score += difficultyScore;
+                explanations.push(`⭐ Difficoltà ${materia.difficolta}/5: +${difficultyScore}pt`);
+                
+                // 4. IMPORTANZA CFU
+                const cfuScore = Math.min(materia.cfu * 1.5, 15);
+                score += cfuScore;
+                explanations.push(`📚 ${materia.cfu} CFU: +${Math.round(cfuScore)}pt`);
+                
+                // 5. PROGRESSO MATERIA
                 const progress = ((materia.pagineStudiate || 0) / materia.pagine) * 100;
-                if (progress < 10) score += 10;
-                else if (progress > 80) score += 8;
-                else if (progress < 30) score += 5;
-                return Math.round(score);
+                let progressScore = 0;
+                if (progress < 10) {
+                    progressScore = 12;
+                    explanations.push("🚀 Materia da iniziare: +12pt");
+                } else if (progress > 80) {
+                    progressScore = 10;
+                    explanations.push("🏁 Quasi completata: +10pt");
+                } else if (progress < 30) {
+                    progressScore = 8;
+                    explanations.push("📈 Inizio promettente: +8pt");
+                } else {
+                    progressScore = 5;
+                    explanations.push("⚖️ Progresso normale: +5pt");
+                }
+                score += progressScore;
+                
+                // 6. DISPONIBILITÀ SLOT TEMPORALI
+                let slotsCount = 0;
+                if (materia.slotSettimanali) {
+                    Object.values(materia.slotSettimanali).forEach(slots => {
+                        slotsCount += slots.length;
+                    });
+                }
+                if (slotsCount > 0) {
+                    const slotScore = Math.min(slotsCount * 2, 8);
+                    score += slotScore;
+                    explanations.push(`⏰ ${slotsCount} slot disponibili: +${slotScore}pt`);
+                }
+                
+                const result = {
+                    score: Math.round(score),
+                    explanations: explanations,
+                    category: this.getScoreCategory(score)
+                };
+                
+                return result.score; // Manteniamo compatibilità
+            },
+            
+            getScoreCategory(score) {
+                if (score >= 80) return { name: "MASSIMA", color: "#ef4444", icon: "🚨" };
+                if (score >= 60) return { name: "ALTA", color: "#f59e0b", icon: "🔥" };
+                if (score >= 40) return { name: "MEDIA", color: "#8b5cf6", icon: "📈" };
+                if (score >= 20) return { name: "BASSA", color: "#06d6a0", icon: "📚" };
+                return { name: "MINIMA", color: "#64748b", icon: "💤" };
             },
 
             debounce(func, wait) {
@@ -1261,8 +1510,125 @@
                     clearTimeout(timeout);
                     timeout = setTimeout(later, wait);
                 };
+            },
+
+            // MIGLIORAMENTO: Correzione bug data calendario
+            formatDateForInput(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            },
+
+            parseDateFromInput(dateString) {
+                // Assicurati che la data sia interpretata come locale, non UTC
+                const [year, month, day] = dateString.split('-').map(Number);
+                return new Date(year, month - 1, day);
             }
         };
+
+        // === NOTIFICAZIONI E BACKUP ===
+        const NotificationManager = {
+            checkUpcomingExams() {
+                const examSettings = localStorage.getItem('examNotifications') || '7days';
+                if (examSettings === 'disabled') return;
+                
+                const daysThreshold = {
+                    '1day': 1,
+                    '3days': 3,
+                    '7days': 7
+                }[examSettings] || 7;
+                
+                const upcomingExams = APP.materie.filter(materia => {
+                    if (materia.status === 'completato' || !materia.dataEsame) return false;
+                    const daysToExam = Utils.getDaysToExam(materia.dataEsame);
+                    return daysToExam > 0 && daysToExam <= daysThreshold;
+                });
+                
+                if (upcomingExams.length > 0) {
+                    const closestExam = upcomingExams.sort((a, b) => 
+                        Utils.getDaysToExam(a.dataEsame) - Utils.getDaysToExam(b.dataEsame)
+                    )[0];
+                    
+                    const daysLeft = Utils.getDaysToExam(closestExam.dataEsame);
+                    this.showExamNotification(closestExam.nome, daysLeft);
+                }
+            },
+            
+            showExamNotification(subjectName, daysLeft) {
+                const banner = document.getElementById('notificationBanner');
+                const text = document.getElementById('notificationText');
+                
+                if (banner && text) {
+                    text.textContent = `${subjectName} - ${daysLeft} ${daysLeft === 1 ? 'giorno' : 'giorni'} rimanenti!`;
+                    banner.classList.add('show');
+                    
+                    // Auto-hide dopo 10 secondi
+                    setTimeout(() => {
+                        banner.classList.remove('show');
+                    }, 10000);
+                }
+            }
+        };
+
+        const BackupManager = {
+            performAutoBackup() {
+                if (!APP.autoBackupEnabled) return;
+                
+                try {
+                    const backupData = {
+                        materie: APP.materie,
+                        esami: APP.esami,
+                        curriculum: APP.curriculum,
+                        calendarSessions: APP.calendarSessions,
+                        sessionRatings: APP.sessionRatings,
+                        backupDate: new Date().toISOString(),
+                        version: '2.1'
+                    };
+                    
+                    localStorage.setItem('autoBackup', JSON.stringify(backupData));
+                    this.showBackupIndicator();
+                } catch (error) {
+                    console.error('Errore backup automatico:', error);
+                }
+            },
+            
+            showBackupIndicator() {
+                const indicator = document.getElementById('backupIndicator');
+                if (indicator) {
+                    indicator.classList.add('show');
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, 3000);
+                }
+            }
+        };
+
+        // === FILTRI E RICERCA ===
+        function filterMaterie() {
+            const searchTerm = document.getElementById('searchMateria').value.toLowerCase();
+            const materieItems = document.querySelectorAll('.subject-item');
+            
+            materieItems.forEach(item => {
+                const materiaName = item.querySelector('div[style*="font-size: 1.3rem"]')?.textContent.toLowerCase() || '';
+                const matchesSearch = materiaName.includes(searchTerm);
+                const matchesFilter = APP.currentFilter === 'all' || 
+                    (APP.currentFilter === 'studio' && !item.classList.contains('exam-completed')) ||
+                    (APP.currentFilter === 'completato' && item.classList.contains('exam-completed'));
+                
+                item.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
+            });
+        }
+
+        function toggleFilter(filter, element) {
+            APP.currentFilter = filter;
+            
+            // Aggiorna visual filtri
+            document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            
+            filterMaterie();
+        }
 
         // === NAVIGAZIONE ===
         function toggleMobileNav() {
@@ -1307,6 +1673,7 @@
                             setTimeout(() => {
                                 WeeklySlots.initializeWeeklySlots();
                                 StarRating.setupStarRating();
+                                filterMaterie();
                             }, 100);
                             break;
                         case 'pomodoro': Sessions.updateAllTodaySessionsList(); break;
@@ -1568,7 +1935,7 @@
                                 <span style="opacity: 0.8;">${task.smartReason}</span><br>
                                 <small style="color: var(--secondary);">
                                     ${task.durata} min • ${Math.round(task.percentualeCompletamento)}% completato
-                                    ${task.priority ? ` • Priorità: ${task.priority}` : ''}
+                                    ${task.priority ? ` • Score: ${task.priority}` : ''}
                                 </small>
                             </div>
                         </div>
@@ -1682,6 +2049,7 @@
             saveMaterie() {
                 try {
                     localStorage.setItem('materie', JSON.stringify(APP.materie));
+                    BackupManager.performAutoBackup();
                 } catch (error) {
                     console.error('Errore nel salvataggio:', error);
                 }
@@ -1717,8 +2085,21 @@
                         oreTotaliSettimanali = Math.round(oreTotaliSettimanali / 60 * 10) / 10;
                     }
                     
+                    // MIGLIORAMENTO: Supporto semestri annuali
+                    const getSemesterBadges = (semestre) => {
+                        if (semestre === 'annuale') {
+                            return `
+                                <div class="semester-badges">
+                                    <span class="semester-badge">I Sem</span>
+                                    <span class="semester-badge">II Sem</span>
+                                </div>
+                            `;
+                        }
+                        return `<span class="semester-badge">${semestre}° Semestre</span>`;
+                    };
+                    
                     return `
-                    <div class="subject-item ${isExamCompleted ? 'exam-completed' : ''}">
+                    <div class="subject-item ${isExamCompleted ? 'exam-completed' : ''} fade-in-up">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
                             <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-light); flex: 1; min-width: 200px;">${materia.nome}</div>
                             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
@@ -1727,15 +2108,15 @@
                                 </span>
                                 <span style="padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: rgba(245, 158, 11, 0.2); color: #fcd34d;">${materia.priorita}</span>
                                 ${!isExamCompleted ? `
-                                    <span style="background: rgba(139, 92, 246, 0.2); color: var(--primary-light); padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">
+                                    <span style="background: rgba(139, 92, 246, 0.2); color: var(--primary-light); padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;" title="Score Intelligente: ${smartPriority} punti">
                                         Score: ${smartPriority}
                                     </span>
-                                    <button class="btn btn-success btn-small" onclick="MaterieManager.markAsExamCompleted(${materia.id})">🎓</button>
-                                    <button class="btn btn-warning btn-small" onclick="MaterieManager.editMateria(${materia.id})">✏️</button>
+                                    <button class="btn btn-success btn-small" onclick="MaterieManager.markAsExamCompleted(${materia.id})" title="Segna esame come completato">🎓</button>
+                                    <button class="btn btn-warning btn-small" onclick="MaterieManager.editMateria(${materia.id})" title="Modifica materia">✏️</button>
                                 ` : `
-                                    <button class="btn btn-warning btn-small" onclick="ExamManager.editExam(${materia.id})">✏️</button>
+                                    <button class="btn btn-warning btn-small" onclick="ExamManager.editExam(${materia.id})" title="Modifica esame">✏️</button>
                                 `}
-                                <button class="btn btn-danger btn-small" onclick="MaterieManager.deleteMateria(${materia.id})">🗑️</button>
+                                <button class="btn btn-danger btn-small" onclick="MaterieManager.deleteMateria(${materia.id})" title="Elimina materia">🗑️</button>
                             </div>
                         </div>
                         
@@ -1764,7 +2145,10 @@
                         
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.95rem; color: var(--text-secondary);">
                             <div><strong>Anno:</strong> ${materia.anno}° Anno</div>
-                            <div><strong>Semestre:</strong> ${materia.semestre}° Semestre</div>
+                            <div>
+                                <strong>Semestre:</strong> 
+                                ${getSemesterBadges(materia.semestre)}
+                            </div>
                             <div><strong>CFU:</strong> ${materia.cfu}</div>
                             <div><strong>Pagine:</strong> ${materia.pagine}</div>
                             <div><strong>Ore settimanali:</strong> ${oreTotaliSettimanali}h</div>
@@ -1774,6 +2158,9 @@
                     </div>
                     `;
                 }).join('');
+                
+                // Applica filtri dopo il caricamento
+                setTimeout(filterMaterie, 100);
             },
 
             markAsExamCompleted(materiaId) {
@@ -1873,7 +2260,7 @@
                         this.saveMaterie();
                         this.loadMaterie();
                         
-                        const currSubjectIndex = APP.curriculum.findIndex(c => c.nome === materia.nome && c.anno === materia.anno && c.semestre === materia.semestre);
+                        const currSubjectIndex = APP.curriculum.findIndex(c => c.nome === materia.nome && c.anno === materia.anno && (c.semestre === materia.semestre || materia.semestre === 'annuale'));
                         if (currSubjectIndex !== -1) {
                             APP.curriculum.splice(currSubjectIndex, 1);
                             CurriculumManager.saveCurriculum();
@@ -1899,6 +2286,7 @@
             saveEsami() {
                 try {
                     localStorage.setItem('esami', JSON.stringify(APP.esami));
+                    BackupManager.performAutoBackup();
                 } catch (error) {
                     console.error('Errore nel salvataggio esami:', error);
                 }
@@ -1968,13 +2356,13 @@
                     if (!materia) return '';
 
                     return `
-                        <div class="subject-item" style="border-color: var(--success); background: rgba(16, 185, 129, 0.05);">
+                        <div class="subject-item fade-in-up" style="border-color: var(--success); background: rgba(16, 185, 129, 0.05);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
                                 <div style="font-size: 1.3rem; font-weight: 700; color: var(--text-primary);">${materia.nome}</div>
                                 <div style="display: flex; gap: 0.75rem; align-items: center;">
                                     <div style="font-size: 2rem; font-weight: 800; color: var(--success);">${esame.voto}${esame.lode ? 'L' : ''}</div>
-                                    <button class="btn btn-warning btn-small" onclick="ExamManager.editExam(${materia.id})">✏️</button>
-                                    <button class="btn btn-danger btn-small" onclick="ExamManager.deleteExam(${esame.id})">🗑️</button>
+                                    <button class="btn btn-warning btn-small" onclick="ExamManager.editExam(${materia.id})" title="Modifica esame">✏️</button>
+                                    <button class="btn btn-danger btn-small" onclick="ExamManager.deleteExam(${esame.id})" title="Elimina esame">🗑️</button>
                                 </div>
                             </div>
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.95rem; color: var(--text-secondary);">
@@ -2028,6 +2416,7 @@
             saveCurriculum() {
                 try {
                     localStorage.setItem('curriculum', JSON.stringify(APP.curriculum));
+                    BackupManager.performAutoBackup();
                 } catch (error) {
                     console.error('Errore nel salvataggio curriculum:', error);
                 }
@@ -2061,24 +2450,36 @@
 
             loadYearSubjects() {
                 for (let year = 1; year <= 3; year++) {
-                    for (let sem = 1; sem <= 2; sem++) {
-                        const container = document.getElementById(`year${year}-semester${sem}-subjects`);
-                        if (!container) continue;
+                    // MIGLIORAMENTO: Supporto per materie annuali
+                    const semesters = [
+                        { id: 1, name: 'I Semestre' },
+                        { id: 2, name: 'II Semestre' },
+                        { id: 'annuale', name: 'Annuali' }
+                    ];
+                    
+                    semesters.forEach(semester => {
+                        const containerId = semester.id === 'annuale' ? 
+                            `year${year}-annuale-subjects` : 
+                            `year${year}-semester${semester.id}-subjects`;
+                        const container = document.getElementById(containerId);
+                        if (!container) return;
 
-                        const subjects = APP.curriculum.filter(s => s.anno === year && s.semestre === sem);
+                        const subjects = APP.curriculum.filter(s => 
+                            s.anno === year && s.semestre === semester.id
+                        );
                         
                         if (subjects.length === 0) {
                             container.innerHTML = `
                                 <div class="empty-state">
                                     <div class="empty-state-icon">📖</div>
-                                    <p>Nessuna materia aggiunta</p>
+                                    <p>Nessuna materia ${semester.id === 'annuale' ? 'annuale' : 'aggiunta'}</p>
                                 </div>
                             `;
-                            continue;
+                            return;
                         }
 
                         container.innerHTML = subjects.map(subject => `
-                            <div style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; ${subject.completato ? 'border-color: var(--success); background: rgba(16, 185, 129, 0.05);' : ''}">
+                            <div class="fade-in-up" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; ${subject.completato ? 'border-color: var(--success); background: rgba(16, 185, 129, 0.05);' : ''}">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 1rem; flex-wrap: wrap;">
                                     <div style="font-weight: 700; color: var(--text-primary); font-size: 1.1rem; flex: 1; min-width: 150px;">${subject.nome}</div>
                                     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
@@ -2086,17 +2487,18 @@
                                             `<span style="font-size: 1.2rem; font-weight: 700; color: var(--success);">${subject.voto}${subject.lode ? 'L' : ''}</span>` : ''
                                         }
                                         <input type="checkbox" ${subject.completato ? 'checked' : ''} 
-                                               onchange="CurriculumManager.toggleSubjectCompletion(${subject.id})" style="width: 20px; height: 20px; cursor: pointer;">
-                                        <button class="btn btn-danger btn-small" onclick="CurriculumManager.deleteCurriculumSubject(${subject.id})">🗑️</button>
+                                               onchange="CurriculumManager.toggleSubjectCompletion(${subject.id})" style="width: 20px; height: 20px; cursor: pointer;" title="Segna come completato">
+                                        <button class="btn btn-danger btn-small" onclick="CurriculumManager.deleteCurriculumSubject(${subject.id})" title="Elimina materia">🗑️</button>
                                     </div>
                                 </div>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
                                     <div><strong>CFU:</strong> ${subject.cfu}</div>
                                     ${subject.professore ? `<div><strong>Prof:</strong> ${subject.professore}</div>` : ''}
+                                    ${subject.semestre === 'annuale' ? `<div><strong>Tipo:</strong> <span style="color: var(--accent); font-weight: 600;">Annuale</span></div>` : ''}
                                 </div>
                             </div>
                         `).join('');
-                    }
+                    });
                 }
             },
 
@@ -2248,7 +2650,7 @@
                 const giorniLabel = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
 
                 container.innerHTML = giorni.map((giorno, index) => `
-                    <div style="background: var(--bg-tertiary); border-radius: var(--border-radius); padding: 1.5rem; border: 1px solid var(--border);">
+                    <div class="fade-in-up" style="background: var(--bg-tertiary); border-radius: var(--border-radius); padding: 1.5rem; border: 1px solid var(--border);">
                         <h4 style="color: var(--primary-light); margin-bottom: 1rem; text-align: center;">${giorniLabel[index]}</h4>
                         <div id="slots-${giorno}">
                             <button type="button" onclick="WeeklySlots.addTimeSlot('${giorno}')" style="width: 100%; padding: 0.75rem; border: 2px dashed var(--border); background: transparent; color: var(--text-secondary); border-radius: 8px; cursor: pointer; transition: all var(--transition); font-weight: 600;">+ Aggiungi Slot</button>
@@ -2268,7 +2670,7 @@
                         <input type="time" value="09:00" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); width: auto; min-width: 120px;">
                         <span style="color: var(--text-secondary);">-</span>
                         <input type="time" value="11:00" style="padding: 0.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); width: auto; min-width: 120px;">
-                        <button type="button" onclick="WeeklySlots.removeTimeSlot('${slotId}')" style="background: var(--danger); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">×</button>
+                        <button type="button" onclick="WeeklySlots.removeTimeSlot('${slotId}')" style="background: var(--danger); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;" title="Rimuovi slot">×</button>
                     </div>
                 `;
                 
@@ -2332,10 +2734,8 @@
                     localStorage.setItem('todayDetailedSessions', JSON.stringify([]));
                 }
                 
-                // Combina sessioni dal timer e da calendario
                 const allSessions = [...APP.todayDetailedSessions];
                 
-                // Aggiungi sessioni manuali dal calendario
                 if (APP.calendarSessions[today]) {
                     APP.calendarSessions[today].forEach(session => {
                         allSessions.push({
@@ -2371,7 +2771,7 @@
                     const ratingStars = '★'.repeat(session.rating) + '☆'.repeat(4 - session.rating);
                     
                     return `
-                        <div class="session-item">
+                        <div class="session-item fade-in-up">
                             <div style="display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 200px;">
                                 <div style="font-weight: 700; min-width: 80px; color: var(--primary-light);">${time}</div>
                                 <div>
@@ -2385,7 +2785,7 @@
                                     <span style="font-size: 1.2rem;">${ratingEmojis[session.rating - 1]}</span>
                                     <small style="color: var(--text-secondary);">${ratingStars}</small>
                                 </div>
-                                <button class="btn btn-danger btn-small" onclick="Sessions.deleteSession(${index}, '${session.type || 'timer'}')">🗑️</button>
+                                <button class="btn btn-danger btn-small" onclick="Sessions.deleteSession(${index}, '${session.type || 'timer'}')" title="Elimina sessione">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -2397,7 +2797,6 @@
                     const today = new Date().toDateString();
                     
                     if (type === 'manual' && APP.calendarSessions[today]) {
-                        // Trova e rimuovi dalla sessione manuale
                         const manualIndex = index - APP.todayDetailedSessions.length;
                         if (manualIndex >= 0 && manualIndex < APP.calendarSessions[today].length) {
                             APP.calendarSessions[today].splice(manualIndex, 1);
@@ -2407,7 +2806,6 @@
                             localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
                         }
                     } else {
-                        // Rimuovi da sessioni timer
                         if (index < APP.todayDetailedSessions.length) {
                             APP.todayDetailedSessions.splice(index, 1);
                             APP.timerState.sessionsToday = Math.max(0, APP.timerState.sessionsToday - 1);
@@ -2498,7 +2896,6 @@
             getSessionsForDate(dateStr) {
                 const sessions = [];
                 
-                // Sessioni dal sistema rating
                 if (APP.sessionRatings[dateStr]) {
                     Object.keys(APP.sessionRatings[dateStr]).forEach(hour => {
                         APP.sessionRatings[dateStr][hour].forEach(session => {
@@ -2511,7 +2908,6 @@
                     });
                 }
                 
-                // Sessioni dal calendario
                 if (APP.calendarSessions[dateStr]) {
                     APP.calendarSessions[dateStr].forEach(session => {
                         sessions.push({
@@ -2521,12 +2917,10 @@
                     });
                 }
                 
-                // Sessioni dettagliate per oggi
                 if (dateStr === new Date().toDateString()) {
                     APP.todayDetailedSessions.forEach(session => {
                         const sessionDate = new Date(session.timestamp).toDateString();
                         if (sessionDate === dateStr) {
-                            // Evita duplicati
                             const exists = sessions.some(s => 
                                 Math.abs(new Date(s.timestamp) - new Date(session.timestamp)) < 60000
                             );
@@ -2574,7 +2968,7 @@
                         const rating = session.rating || 3;
                         
                         return `
-                            <div class="session-item">
+                            <div class="session-item fade-in-up">
                                 <div style="flex: 1;">
                                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
                                         <div style="font-weight: 700; color: var(--primary-light);">${time}</div>
@@ -2589,8 +2983,8 @@
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                    <button class="btn btn-warning btn-small" onclick="Calendar.editDaySession(${index})">✏️</button>
-                                    <button class="btn btn-danger btn-small" onclick="Calendar.deleteDaySession(${index})">🗑️</button>
+                                    <button class="btn btn-warning btn-small" onclick="Calendar.editDaySession(${index})" title="Modifica sessione">✏️</button>
+                                    <button class="btn btn-danger btn-small" onclick="Calendar.deleteDaySession(${index})" title="Elimina sessione">🗑️</button>
                                 </div>
                             </div>
                         `;
@@ -2614,7 +3008,6 @@
                     if (index >= 0 && index < sessions.length) {
                         const session = sessions[index];
                         
-                        // Rimuovi dalla struttura appropriata
                         if (session.type === 'manual' && APP.calendarSessions[dateStr]) {
                             const manualIndex = APP.calendarSessions[dateStr].findIndex(s => 
                                 s.timestamp === session.timestamp
@@ -2638,7 +3031,6 @@
                             }
                         }
                         
-                        // Aggiorna la visualizzazione
                         const updatedSessions = this.getSessionsForDate(dateStr);
                         this.showDayDetail(dateStr, updatedSessions);
                         this.renderCalendar();
@@ -2737,7 +3129,7 @@
                         ${APP.materie.filter(m => m.status !== 'completato').map(materia => {
                             const progress = Math.round(((materia.pagineStudiate || 0) / materia.pagine) * 100);
                             return `
-                                <div style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border);">
+                                <div class="fade-in-up" style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border);">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 1rem;">
                                         <span style="font-weight: 600; flex: 1; min-width: 150px;">${materia.nome}</span>
                                         <span style="color: var(--secondary); font-weight: 600;">${progress}%</span>
@@ -2935,7 +3327,7 @@
                     const rankEmojis = ['🥇', '🥈', '🥉'];
                     
                     return `
-                        <div style="background: var(--bg-card); border-radius: 12px; padding: 1.5rem; text-align: center; border: 2px solid var(--border); transition: all 0.3s ease;">
+                        <div class="fade-in-up" style="background: var(--bg-card); border-radius: 12px; padding: 1.5rem; text-align: center; border: 2px solid var(--border); transition: all 0.3s ease;">
                             <div style="font-size: 2rem; font-weight: 800; color: var(--success); margin-bottom: 0.5rem;">${rankEmojis[index]}</div>
                             <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-light); margin-bottom: 0.5rem;">${hour.hour}:00 - ${hour.hour + 1}:00</div>
                             <div style="font-size: 0.9rem; color: var(--text-secondary);">
@@ -3087,12 +3479,12 @@
                 if (metrics.avgDailyHours > 6) {
                     suggestions.push({
                         title: "⚠️ Carico di Studio Intenso",
-                        description: `Con ${metrics.avgDailyHours}h al giorno, considera di distribuire meglio il carico.`
+                        description: `Con ${metrics.avgDailyHours}h al giorno, considera di distribuire meglio il carico per evitare il burnout.`
                     });
                 } else if (metrics.avgDailyHours < 2) {
                     suggestions.push({
                         title: "⚡ Opportunità di Ottimizzazione",
-                        description: `Con solo ${metrics.avgDailyHours}h al giorno, potresti aumentare le ore di studio.`
+                        description: `Con solo ${metrics.avgDailyHours}h al giorno, potresti aumentare le ore di studio per raggiungere prima i tuoi obiettivi.`
                     });
                 }
 
@@ -3106,20 +3498,29 @@
                     if (prossimeScadenze.length > 0) {
                         suggestions.push({
                             title: "🎯 Focus su Priorità",
-                            description: `${prossimeScadenze[0].nome} ha l'esame tra ${prossimeScadenze[0].daysToExam} giorni.`
+                            description: `${prossimeScadenze[0].nome} ha l'esame tra ${prossimeScadenze[0].daysToExam} giorni. Concentra i tuoi sforzi!`
                         });
                     }
+                }
+
+                // MIGLIORAMENTO: Analisi bilanciamento materie
+                const materieConSlots = materieInStudio.filter(m => m.slotSettimanali && Object.values(m.slotSettimanali).some(slots => slots.length > 0));
+                if (materieConSlots.length < materieInStudio.length) {
+                    suggestions.push({
+                        title: "📅 Ottimizza Programmazione",
+                        description: `${materieInStudio.length - materieConSlots.length} materie non hanno slot temporali definiti. Aggiungi degli orari per ottimizzare il piano.`
+                    });
                 }
 
                 if (suggestions.length === 0) {
                     suggestions.push({
                         title: "✅ Piano Ottimale",
-                        description: "Il tuo piano di studio è ben bilanciato! Continua così."
+                        description: "Il tuo piano di studio è ben bilanciato! Continua così e mantieni la costanza."
                     });
                 }
 
                 suggestionsList.innerHTML = suggestions.map(s => `
-                    <div style="background: rgba(6, 214, 160, 0.05); border: 1px solid rgba(6, 214, 160, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+                    <div class="fade-in-up" style="background: rgba(6, 214, 160, 0.05); border: 1px solid rgba(6, 214, 160, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
                         <div style="font-weight: 600; color: var(--secondary); margin-bottom: 0.5rem;">${s.title}</div>
                         <div style="color: var(--text-primary);">${s.description}</div>
                     </div>
@@ -3174,18 +3575,19 @@
                                 Math.ceil(pagineRimanenti / ((oreSettimanaliFormatted) * (materia.pagineOra || 8))) : 'N/A';
                             
                             let borderColor = 'var(--border)';
-                            if (index === 0) borderColor = 'var(--danger)';
-                            else if (index === 1) borderColor = 'var(--warning)';
-                            else if (index === 2) borderColor = 'var(--primary)';
+                            let priorityIcon = '📚';
+                            if (index === 0) { borderColor = 'var(--danger)'; priorityIcon = '🚨'; }
+                            else if (index === 1) { borderColor = 'var(--warning)'; priorityIcon = '🔥'; }
+                            else if (index === 2) { borderColor = 'var(--primary)'; priorityIcon = '⭐'; }
                             
                             return `
-                                <div style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--border-radius); padding: 1.5rem; border-left: 4px solid ${borderColor}; transition: all var(--transition);">
+                                <div class="fade-in-up" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--border-radius); padding: 1.5rem; border-left: 4px solid ${borderColor}; transition: all var(--transition);">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap;">
                                         <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary-light); flex: 1; min-width: 150px;">${materia.nome}</div>
                                         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                             <div style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; background: rgba(245, 158, 11, 0.2); color: #fcd34d;">${materia.priorita}</div>
-                                            <div style="background: ${borderColor}; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600;">
-                                                #${index + 1}
+                                            <div style="background: ${borderColor}; color: white; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem;" title="Posizione nella priorità">
+                                                ${priorityIcon} #${index + 1}
                                             </div>
                                         </div>
                                     </div>
@@ -3210,9 +3612,9 @@
                                     </div>
                                     
                                     <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(139, 92, 246, 0.1); border-radius: 8px;">
-                                        <div style="font-weight: 600; color: var(--primary-light); margin-bottom: 0.5rem;">🎯 Priorità Smart</div>
+                                        <div style="font-weight: 600; color: var(--primary-light); margin-bottom: 0.5rem;">🎯 Score Intelligente</div>
                                         <div style="font-size: 0.9rem; color: var(--text-primary);">
-                                            Score: <strong>${materia.smartPriority}</strong> | Posizione: <strong>#${index + 1}</strong>
+                                            <strong>${materia.smartPriority} punti</strong> • Posizione: <strong>#${index + 1}</strong>
                                         </div>
                                     </div>
                                     
@@ -3271,7 +3673,7 @@
                 const nome = document.getElementById('nomeMateria').value.trim();
                 const cfu = parseInt(document.getElementById('cfu').value);
                 const anno = parseInt(document.getElementById('anno').value);
-                const semestre = parseInt(document.getElementById('semestre').value);
+                const semestre = document.getElementById('semestre').value; // MIGLIORAMENTO: Può essere 'annuale'
                 const pagine = parseInt(document.getElementById('pagine').value);
                 const pagineStudiate = parseInt(document.getElementById('pagineStudiate').value) || 0;
                 const pagineOra = parseInt(document.getElementById('pagineOra').value) || 8;
@@ -3294,7 +3696,7 @@
                     if (slots.length > 0) hasSlots = true;
                 });
 
-                if (!hasSlots) {
+                if (!hasSlots && semestre !== 'annuale') {
                     const conferma = confirm('Non hai definito slot temporali per questa materia. Vuoi continuare comunque?');
                     if (!conferma) return;
                 }
@@ -3311,8 +3713,10 @@
                 APP.materie.push(nuovaMateria);
                 MaterieManager.saveMaterie();
                 
+                // MIGLIORAMENTO: Gestione materie annuali nel curriculum
                 const existingCurrSubject = APP.curriculum.find(c => 
-                    c.nome === nome && c.anno === anno && c.semestre === semestre
+                    c.nome === nome && c.anno === anno && 
+                    (c.semestre === semestre || semestre === 'annuale')
                 );
                 
                 if (!existingCurrSubject) {
@@ -3559,7 +3963,21 @@
             Utils.showSuccessMessage('🚀 Sessione di studio iniziata!');
         }
 
-        // Timer personalizzato - FUNZIONE COMPLETA
+        // === SPIEGAZIONE SCORE ===
+        function toggleScoreExplanation() {
+            const details = document.getElementById('scoreExplanationDetails');
+            const icon = document.getElementById('scoreToggleIcon');
+            
+            if (details.classList.contains('hidden')) {
+                details.classList.remove('hidden');
+                icon.textContent = '▲';
+            } else {
+                details.classList.add('hidden');
+                icon.textContent = '▼';
+            }
+        }
+
+        // Timer personalizzato
         function showCustomTimerDialog() {
             document.getElementById('customTimerModal').style.display = 'flex';
         }
@@ -3582,7 +4000,6 @@
                 return;
             }
             
-            // Deseleziona tutti i preset
             document.querySelectorAll('.btn-secondary.active').forEach(btn => btn.classList.remove('active'));
             
             setPreset(workTime, breakTime, null);
@@ -3609,7 +4026,6 @@
                 APP.todayDetailedSessions = [];
                 APP.timerState.sessionsToday = 0;
                 
-                // Rimuovi anche dal calendario
                 if (APP.calendarSessions[today]) {
                     delete APP.calendarSessions[today];
                     localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
@@ -3636,7 +4052,8 @@
         }
 
         function addManualSession() {
-            document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+            // MIGLIORAMENTO: Correzione bug data
+            document.getElementById('sessionDate').value = Utils.formatDateForInput(new Date());
             
             const select = document.getElementById('sessionMateria');
             select.innerHTML = '<option value="">Sessione generica</option>';
@@ -3652,7 +4069,8 @@
         function addSessionToDay() {
             if (!APP.currentDayDetailDate) return;
             
-            document.getElementById('sessionDate').value = new Date(APP.currentDayDetailDate).toISOString().split('T')[0];
+            const dayDate = Utils.parseDateFromInput(APP.currentDayDetailDate);
+            document.getElementById('sessionDate').value = Utils.formatDateForInput(dayDate);
             
             const select = document.getElementById('sessionMateria');
             select.innerHTML = '<option value="">Sessione generica</option>';
@@ -3670,17 +4088,19 @@
         }
 
         function saveManualSession() {
-            const date = document.getElementById('sessionDate').value;
+            const dateInput = document.getElementById('sessionDate').value;
             const materia = document.getElementById('sessionMateria').value || 'Sessione generica';
             const duration = parseInt(document.getElementById('sessionDuration').value) || 25;
             const note = document.getElementById('sessionNote').value || '';
             
-            if (!date) {
+            if (!dateInput) {
                 Utils.showSuccessMessage('❌ Seleziona una data');
                 return;
             }
             
-            const dateStr = new Date(date).toDateString();
+            // MIGLIORAMENTO: Correzione bug data - usa la data locale corretta
+            const selectedDate = Utils.parseDateFromInput(dateInput);
+            const dateStr = selectedDate.toDateString();
             
             if (!APP.calendarSessions[dateStr]) {
                 APP.calendarSessions[dateStr] = [];
@@ -3691,31 +4111,27 @@
                 materia,
                 duration,
                 note,
-                timestamp: new Date(date).toISOString(),
+                timestamp: selectedDate.toISOString(),
                 type: 'manual',
-                rating: 3 // Rating di default per sessioni manuali
+                rating: 3
             };
             
             APP.calendarSessions[dateStr].push(sessionData);
             localStorage.setItem('calendarSessions', JSON.stringify(APP.calendarSessions));
             
-            // Se è oggi, aggiorna anche il conteggio sessioni
             const today = new Date().toDateString();
             if (dateStr === today) {
                 Sessions.updateAllTodaySessionsList();
             }
             
-            // Aggiorna calendario e chiudi modal
             Calendar.renderCalendar();
             closeAddSessionModal();
             
-            // Se modal dettagli giorno è aperto, aggiorna
             if (APP.currentDayDetailDate === dateStr) {
                 const sessions = Calendar.getSessionsForDate(dateStr);
                 Calendar.showDayDetail(dateStr, sessions);
             }
             
-            // Reset form
             document.getElementById('sessionNote').value = '';
             
             Utils.showSuccessMessage('✅ Sessione aggiunta al calendario!');
@@ -3753,17 +4169,22 @@
             
             APP.esami.push(nuovoEsame);
             
-            const currSubject = APP.curriculum.find(c => c.nome === materia.nome && c.anno === materia.anno && c.semestre === materia.semestre);
-            if (currSubject) {
+            // MIGLIORAMENTO: Gestione materie annuali nel curriculum
+            const currSubjects = APP.curriculum.filter(c => 
+                c.nome === materia.nome && c.anno === materia.anno && 
+                (c.semestre === materia.semestre || materia.semestre === 'annuale')
+            );
+            
+            currSubjects.forEach(currSubject => {
                 currSubject.completato = true;
                 currSubject.voto = voto;
                 currSubject.lode = lode && voto === 30;
                 currSubject.dataCompletamento = dataEsame || new Date().toISOString().split('T')[0];
-                CurriculumManager.saveCurriculum();
-            }
+            });
             
             MaterieManager.saveMaterie();
             ExamManager.saveEsami();
+            CurriculumManager.saveCurriculum();
             
             MaterieManager.loadMaterie();
             ExamManager.updateExamsSection();
@@ -3794,7 +4215,7 @@
         function saveCurriculumSubject() {
             const nome = document.getElementById('currSubjectName').value.trim();
             const anno = parseInt(document.getElementById('currSubjectYear').value);
-            const semestre = parseInt(document.getElementById('currSubjectSemester').value);
+            const semestre = document.getElementById('currSubjectSemester').value; // MIGLIORAMENTO: Può essere 'annuale'
             const cfu = parseInt(document.getElementById('currSubjectCFU').value);
             
             if (!nome || !anno || !semestre || !cfu) {
@@ -3922,7 +4343,7 @@
                         const daysToExam = Utils.getDaysToExam(materia.dataEsame);
                         
                         return `
-                            <div style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; border-left: 4px solid ${getPriorityColor(index)};">
+                            <div class="fade-in-up" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; border-left: 4px solid ${getPriorityColor(index)};">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                                     <h4 style="color: var(--text-primary); margin: 0;">${index + 1}. ${materia.nome}</h4>
                                     <span style="background: ${getPriorityColor(index)}; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
@@ -3933,7 +4354,7 @@
                                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
                                     <div style="text-align: center; padding: 0.75rem; background: var(--bg-card); border-radius: 8px;">
                                         <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">${priority}</div>
-                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Punteggio</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Score</div>
                                     </div>
                                     <div style="text-align: center; padding: 0.75rem; background: var(--bg-card); border-radius: 8px;">
                                         <div style="font-size: 1.2rem; font-weight: 700; color: var(--secondary);">${progress}%</div>
@@ -3986,6 +4407,30 @@
             document.getElementById('helperResults').classList.add('hidden');
         }
 
+        // === NOTIFICHE ===
+        function hideNotification() {
+            document.getElementById('notificationBanner').classList.remove('show');
+        }
+
+        function updateAutoBackup() {
+            const setting = document.getElementById('autoBackup').value;
+            localStorage.setItem('autoBackup', setting);
+            APP.autoBackupEnabled = setting !== 'disabled';
+            
+            if (APP.autoBackupEnabled) {
+                BackupManager.performAutoBackup();
+                Utils.showSuccessMessage('✅ Backup automatico attivato');
+            } else {
+                Utils.showSuccessMessage('⚙️ Backup automatico disattivato');
+            }
+        }
+
+        function updateExamNotifications() {
+            const setting = document.getElementById('examNotifications').value;
+            localStorage.setItem('examNotifications', setting);
+            Utils.showSuccessMessage('🔔 Impostazioni notifiche aggiornate');
+        }
+
         // === DATA MANAGEMENT ===
         function exportAllData() {
             try {
@@ -4003,7 +4448,7 @@
                     studyData: APP.studyData,
                     todayDetailedSessions: APP.todayDetailedSessions,
                     exportDate: new Date().toISOString(),
-                    version: '2.0'
+                    version: '2.1'
                 };
 
                 const dataString = JSON.stringify(allData, null, 2);
@@ -4142,7 +4587,8 @@
                     'materie', 'esami', 'curriculum', 'calendarSessions', 
                     'sessionRatings', 'todayDetailedSessions', 'dailyGoal', 
                     'sessionsToday', 'lastSessionDate', 'studyStreak', 
-                    'lastStudyDate', 'totalSessions', 'missedTime'
+                    'lastStudyDate', 'totalSessions', 'missedTime',
+                    'autoBackup', 'examNotifications'
                 ];
 
                 keysToRemove.forEach(key => localStorage.removeItem(key));
@@ -4176,6 +4622,7 @@
         // === INIZIALIZZAZIONE ===
         document.addEventListener('DOMContentLoaded', function() {
             try {
+                // Caricamento iniziale
                 MaterieManager.loadMaterie();
                 Timer.updateSessionDisplay();
                 Timer.updateDailyGoalDisplay();
@@ -4189,6 +4636,7 @@
                     localStorage.setItem('todayDetailedSessions', JSON.stringify([]));
                 }
                 
+                // Inizializzazione componenti
                 SmartPlanner.generateTodaySchedule();
                 WeeklySlots.initializeWeeklySlots();
                 StarRating.setupStarRating();
@@ -4201,7 +4649,18 @@
                 PianoStudio.generatePianoStudio();
                 ProductivityAnalyzer.updateProductivitySection();
                 
-                console.log('📚 Piano Studio Smart v2.0 MIGLIORATO inizializzato con successo!');
+                // MIGLIORAMENTO: Controllo notifiche e backup automatico
+                NotificationManager.checkUpcomingExams();
+                if (APP.autoBackupEnabled) {
+                    BackupManager.performAutoBackup();
+                }
+                
+                // Impostazioni iniziali
+                document.getElementById('autoBackup').value = localStorage.getItem('autoBackup') || 'daily';
+                document.getElementById('examNotifications').value = localStorage.getItem('examNotifications') || '7days';
+                
+                console.log('📚 Piano Studio Smart v2.1 MIGLIORATO inizializzato con successo!');
+                console.log('🎯 Nuove funzionalità: Materie annuali, Score spiegato, Notifiche, Backup automatico, Filtri avanzati');
                 
             } catch (error) {
                 console.error('❌ Errore nell\'inizializzazione:', error);
@@ -4231,6 +4690,18 @@
                 closeMobileNav();
             }
         });
+
+        // Controllo notifiche periodico (ogni ora)
+        setInterval(() => {
+            NotificationManager.checkUpcomingExams();
+        }, 3600000);
+
+        // Backup automatico periodico (ogni 6 ore)
+        setInterval(() => {
+            if (APP.autoBackupEnabled) {
+                BackupManager.performAutoBackup();
+            }
+        }, 21600000);
     </script>
 </body>
 </html>
