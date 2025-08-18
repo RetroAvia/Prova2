@@ -1121,31 +1121,79 @@
 
     <!-- Modals -->
     <div class="modal-overlay" id="ratingModal">
-        <div style="background: var(--bg-card); border-radius: 20px; padding: 3rem 2rem; max-width: 450px; width: 90%; box-shadow: var(--shadow-xl); text-align: center;">
+        <div style="background: var(--bg-card); border-radius: 20px; padding: 3rem 2rem; max-width: 500px; width: 90%; box-shadow: var(--shadow-xl); text-align: center;">
             <h3 style="color: var(--primary-light); font-size: 1.8rem; margin-bottom: 1rem;">🎉 Sessione Completata!</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Come ti senti dopo questa sessione?</p>
             
-            <div class="form-group">
-                <label for="sessionNote">📝 Note (opzionale):</label>
-                <input type="text" id="sessionNote" placeholder="Es. Ho studiato il capitolo 3..." style="margin-bottom: 1rem;">
+            <!-- MIGLIORAMENTO: Tipo di sessione -->
+            <div id="sessionTypeStep" style="margin-bottom: 2rem;">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Che tipo di sessione hai fatto?</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <button id="studySessionBtn" onclick="selectSessionType('study')" style="padding: 1.5rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all var(--transition); color: var(--text-primary);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
+                        <div style="font-weight: 600;">Studio</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Nuovi argomenti/esercizi</div>
+                    </button>
+                    <button id="reviewSessionBtn" onclick="selectSessionType('review')" style="padding: 1.5rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all var(--transition); color: var(--text-primary);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔄</div>
+                        <div style="font-weight: 600;">Ripasso</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Revisione argomenti</div>
+                    </button>
+                </div>
             </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                <div onclick="submitRating(1)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
-                    <div style="font-size: 2.5rem;">😴</div>
-                    <div style="font-weight: 600; color: #9ca3af;">Stanco</div>
+
+            <!-- MIGLIORAMENTO: Progress tracking per sessioni di studio -->
+            <div id="progressStep" class="hidden" style="margin-bottom: 2rem;">
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Cosa hai fatto durante la sessione?</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <button id="pagesStudyBtn" onclick="selectProgressType('pages')" style="padding: 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); color: var(--text-primary);">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">📖</div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">Pagine Studiate</div>
+                    </button>
+                    <button id="exercisesBtn" onclick="selectProgressType('exercises')" style="padding: 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all var(--transition); color: var(--text-primary);">
+                        <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">💪</div>
+                        <div style="font-weight: 600; font-size: 0.9rem;">Esercizi Fatti</div>
+                    </button>
                 </div>
-                <div onclick="submitRating(2)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
-                    <div style="font-size: 2.5rem;">😐</div>
-                    <div style="font-weight: 600; color: var(--warning);">Normale</div>
+
+                <div id="pagesInput" class="hidden form-group">
+                    <label for="studiedPages">Quante pagine hai studiato?</label>
+                    <input type="number" id="studiedPages" min="0" max="100" placeholder="es. 5" style="text-align: center;">
                 </div>
-                <div onclick="submitRating(3)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
-                    <div style="font-size: 2.5rem;">😊</div>
-                    <div style="font-weight: 600; color: var(--secondary);">Bene</div>
+
+                <div id="exercisesInput" class="hidden form-group">
+                    <label for="exercisesDone">Quanti esercizi hai fatto?</label>
+                    <input type="number" id="exercisesDone" min="0" max="50" placeholder="es. 3" style="text-align: center;">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">Ogni esercizio vale circa 1 pagina di studio</small>
                 </div>
-                <div onclick="submitRating(4)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
-                    <div style="font-size: 2.5rem;">🔥</div>
-                    <div style="font-weight: 600; color: var(--success);">Eccellente</div>
+            </div>
+
+            <!-- Rating e note -->
+            <div id="ratingStep" class="hidden">
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Come ti senti dopo questa sessione?</p>
+                
+                <div class="form-group">
+                    <label for="sessionNote">📝 Note (opzionale):</label>
+                    <input type="text" id="sessionNote" placeholder="Es. Ho studiato il capitolo 3..." style="margin-bottom: 1rem;">
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div onclick="submitRating(1)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
+                        <div style="font-size: 2.5rem;">😴</div>
+                        <div style="font-weight: 600; color: #9ca3af;">Stanco</div>
+                    </div>
+                    <div onclick="submitRating(2)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
+                        <div style="font-size: 2.5rem;">😐</div>
+                        <div style="font-weight: 600; color: var(--warning);">Normale</div>
+                    </div>
+                    <div onclick="submitRating(3)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
+                        <div style="font-size: 2.5rem;">😊</div>
+                        <div style="font-weight: 600; color: var(--secondary);">Bene</div>
+                    </div>
+                    <div onclick="submitRating(4)" style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem; background: var(--bg-tertiary); border: 2px solid var(--border); border-radius: var(--border-radius-lg); cursor: pointer; transition: all var(--transition);">
+                        <div style="font-size: 2.5rem;">🔥</div>
+                        <div style="font-weight: 600; color: var(--success);">Eccellente</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1330,6 +1378,10 @@
             mobileNavOpen: false,
             currentFilter: 'all',
             autoBackupEnabled: localStorage.getItem('autoBackup') !== 'disabled',
+            
+            // MIGLIORAMENTO: Nuove variabili per tracking progresso
+            sessionType: null, // 'study' o 'review'
+            progressType: null, // 'pages' o 'exercises'
             
             universalMicroTasks: [
                 { text: "📖 Leggi il sommario del primo capitolo", durata: 5 },
@@ -1533,6 +1585,11 @@
                 const examSettings = localStorage.getItem('examNotifications') || '7days';
                 if (examSettings === 'disabled') return;
                 
+                // CORREZIONE: Controlla se la notifica è già stata mostrata oggi
+                const today = new Date().toDateString();
+                const lastNotificationDate = localStorage.getItem('lastNotificationDate');
+                if (lastNotificationDate === today) return;
+                
                 const daysThreshold = {
                     '1day': 1,
                     '3days': 3,
@@ -1552,6 +1609,9 @@
                     
                     const daysLeft = Utils.getDaysToExam(closestExam.dataEsame);
                     this.showExamNotification(closestExam.nome, daysLeft);
+                    
+                    // Salva che abbiamo mostrato la notifica oggi
+                    localStorage.setItem('lastNotificationDate', today);
                 }
             },
             
@@ -1563,10 +1623,10 @@
                     text.textContent = `${subjectName} - ${daysLeft} ${daysLeft === 1 ? 'giorno' : 'giorni'} rimanenti!`;
                     banner.classList.add('show');
                     
-                    // Auto-hide dopo 10 secondi
+                    // MIGLIORAMENTO: Auto-hide dopo 15 secondi invece di 10
                     setTimeout(() => {
                         banner.classList.remove('show');
-                    }, 10000);
+                    }, 15000);
                 }
             }
         };
@@ -1817,47 +1877,124 @@
 
             generateTaskOptions(materia) {
                 const percentualeCompletamento = ((materia.pagineStudiate || 0) / materia.pagine) * 100;
+                const pagineStudiate = materia.pagineStudiate || 0;
+                const pagineRimanenti = materia.pagine - pagineStudiate;
                 const options = [];
 
-                if (percentualeCompletamento < 30) {
+                // MIGLIORAMENTO: Logica più intelligente basata sul progresso reale
+                
+                // Fase iniziale: 0-15%
+                if (percentualeCompletamento < 15) {
+                    if (pagineStudiate === 0) {
+                        options.push({
+                            id: 'primo-approccio',
+                            titulo: '🚀 Primo Approccio',
+                            descrizione: 'Inizia con una panoramica generale e l\'indice del libro',
+                            motivazione: 'Il primo contatto è fondamentale per orientarsi nella materia'
+                        });
+                    }
+                    
                     options.push({
                         id: 'concetti-base',
-                        titulo: '📚 Concetti Base',
-                        descrizione: 'Inizia con i fondamenti e le definizioni principali',
+                        titulo: '📚 Concetti Fondamentali',
+                        descrizione: 'Studio delle definizioni e teoremi principali',
                         motivazione: 'Costruire basi solide è essenziale per il successo'
                     });
-                    options.push({
-                        id: 'primi-capitoli',
-                        titulo: '📖 Primi Capitoli',
-                        descrizione: 'Studio sequenziale dall\'inizio del programma',
-                        motivazione: 'Approccio sistematico per una comprensione completa'
-                    });
+                    
+                    if (pagineStudiate > 10) {
+                        options.push({
+                            id: 'consolidamento-base',
+                            titulo: '🔧 Consolidamento Base',
+                            descrizione: 'Ripassa e consolida i primi concetti appresi',
+                            motivazione: 'Prima di andare avanti, assicurati di aver capito bene'
+                        });
+                    }
                 }
-
-                if (percentualeCompletamento >= 20) {
+                
+                // Fase intermedia: 15-70%
+                else if (percentualeCompletamento < 70) {
                     options.push({
                         id: 'approfondimento',
-                        titulo: '🔍 Approfondimento',
-                        descrizione: 'Continua con gli argomenti più complessi',
+                        titulo: '🔍 Approfondimento Teorico',
+                        descrizione: 'Continua con gli argomenti più complessi e le dimostrazioni',
                         motivazione: 'Sviluppa una comprensione più profonda della materia'
                     });
+                    
                     options.push({
-                        id: 'esercizi',
-                        titulo: '💪 Esercizi Pratici',
-                        descrizione: 'Risolvi problemi ed esercizi applicativi',
-                        motivazione: 'La pratica consolida la teoria appresa'
+                        id: 'esercizi-guidati',
+                        titulo: '💪 Esercizi Guidati',
+                        descrizione: 'Risolvi problemi ed esercizi con soluzioni disponibili',
+                        motivazione: 'La pratica guidata consolida la teoria appresa'
                     });
+                    
+                    if (percentualeCompletamento > 30) {
+                        options.push({
+                            id: 'collegamenti',
+                            titulo: '🔗 Collegamenti Concettuali',
+                            descrizione: 'Trova connessioni tra argomenti diversi',
+                            motivazione: 'Capire i collegamenti rende tutto più semplice'
+                        });
+                    }
+                    
+                    if (percentualeCompletamento > 50) {
+                        options.push({
+                            id: 'ripasso-mirato',
+                            titulo: '🎯 Ripasso Mirato',
+                            descrizione: 'Rivedi gli argomenti più difficili o dimenticati',
+                            motivazione: 'Il ripasso mirato rafforza i punti deboli'
+                        });
+                    }
                 }
-
-                if (percentualeCompletamento >= 50) {
+                
+                // Fase avanzata: 70-90%
+                else if (percentualeCompletamento < 90) {
                     options.push({
-                        id: 'ripasso',
+                        id: 'esercizi-avanzati',
+                        titulo: '🏆 Esercizi Avanzati',
+                        descrizione: 'Affronta problemi complessi e casi particolari',
+                        motivazione: 'Gli esercizi difficili ti preparano per qualsiasi domanda'
+                    });
+                    
+                    options.push({
+                        id: 'ripasso-generale',
                         titulo: '🔄 Ripasso Generale',
-                        descrizione: 'Rivedi e consolida gli argomenti già studiati',
-                        motivazione: 'Il ripasso rafforza la memoria a lungo termine'
+                        descrizione: 'Rivedi tutti gli argomenti principali della materia',
+                        motivazione: 'Un ripasso completo consolida tutta la preparazione'
+                    });
+                    
+                    options.push({
+                        id: 'simulazione-esame',
+                        titulo: '🎓 Simulazione Esame',
+                        descrizione: 'Prova a rispondere a domande tipo esame',
+                        motivazione: 'La simulazione ti prepara psicologicamente all\'esame'
+                    });
+                }
+                
+                // Fase finale: 90%+
+                else {
+                    options.push({
+                        id: 'ripasso-finale',
+                        titulo: '✨ Ripasso Finale',
+                        descrizione: 'Ultimo ripasso prima dell\'esame',
+                        motivazione: 'Rinfresca la memoria su tutto il programma'
+                    });
+                    
+                    options.push({
+                        id: 'esami-passati',
+                        titulo: '📝 Esami degli Anni Passati',
+                        descrizione: 'Risolvi prove d\'esame precedenti',
+                        motivazione: 'Le prove passate mostrano cosa aspettarsi'
+                    });
+                    
+                    options.push({
+                        id: 'punti-critici',
+                        titulo: '⚠️ Punti Critici',
+                        descrizione: 'Concentrati sugli argomenti più ostici',
+                        motivazione: 'Elimina gli ultimi dubbi prima dell\'esame'
                     });
                 }
 
+                // Sempre disponibile
                 options.push({
                     id: 'personalizzato',
                     titulo: '⚙️ Studio Personalizzato',
@@ -1976,7 +2113,10 @@
                     return;
                 }
 
-                const tasks = APP.universalMicroTasks.slice(0, 4);
+                // MIGLIORAMENTO: Genera micro-tasks intelligenti basati sul progresso
+                const materia = APP.materie.find(m => m.nome === nextTask.materia);
+                const tasks = this.generateSmartMicroTasks(materia);
+                
                 microTasksContainer.classList.remove('hidden');
                 
                 microTasksList.innerHTML = tasks.map(task => `
@@ -1985,6 +2125,56 @@
                         <div style="font-size: 0.8rem; color: var(--secondary); font-weight: 600;">${task.durata} min</div>
                     </div>
                 `).join('');
+            },
+
+            generateSmartMicroTasks(materia) {
+                if (!materia) {
+                    return APP.universalMicroTasks.slice(0, 4);
+                }
+
+                const percentualeCompletamento = ((materia.pagineStudiate || 0) / materia.pagine) * 100;
+                const pagineStudiate = materia.pagineStudiate || 0;
+                let smartTasks = [];
+
+                // Task basati sul progresso della materia
+                if (percentualeCompletamento === 0) {
+                    smartTasks = [
+                        { text: `📖 Sfoglia l'indice di ${materia.nome}`, durata: 3 },
+                        { text: "🎯 Leggi l'introduzione del primo capitolo", durata: 5 },
+                        { text: "📝 Scrivi 3 obiettivi per questa materia", durata: 4 },
+                        { text: "🔍 Cerca info generali sulla materia online", durata: 5 }
+                    ];
+                } else if (percentualeCompletamento < 25) {
+                    smartTasks = [
+                        { text: `📚 Rileggi le ultime 2 pagine studiate di ${materia.nome}`, durata: 4 },
+                        { text: "✏️ Riassumi in 3 punti l'ultimo argomento", durata: 3 },
+                        { text: "🤔 Pensa a 2 domande sull'argomento corrente", durata: 2 },
+                        { text: "📋 Controlla se hai capito le definizioni base", durata: 4 }
+                    ];
+                } else if (percentualeCompletamento < 50) {
+                    smartTasks = [
+                        { text: `🔗 Collega l'ultimo argomento ai precedenti di ${materia.nome}`, durata: 4 },
+                        { text: "💡 Trova un esempio pratico dell'ultimo concetto", durata: 5 },
+                        { text: "📊 Fai un mini-schema dell'argomento corrente", durata: 6 },
+                        { text: "🎯 Identifica i punti più difficili finora", durata: 3 }
+                    ];
+                } else if (percentualeCompletamento < 75) {
+                    smartTasks = [
+                        { text: `🔄 Ripassa velocemente un capitolo di ${materia.nome}`, durata: 5 },
+                        { text: "💪 Prova a spiegare un concetto a voce alta", durata: 3 },
+                        { text: "📝 Scrivi le formule principali a memoria", durata: 4 },
+                        { text: "🤯 Identifica i collegamenti tra capitoli", durata: 5 }
+                    ];
+                } else {
+                    smartTasks = [
+                        { text: `🎓 Ripassa i concetti chiave di ${materia.nome}`, durata: 5 },
+                        { text: "⚡ Fai un ripasso lampo degli argomenti principali", durata: 4 },
+                        { text: "🧠 Pensa alle possibili domande d'esame", durata: 4 },
+                        { text: "✨ Rivedi i punti che ti sembrano meno chiari", durata: 5 }
+                    ];
+                }
+
+                return smartTasks;
             },
 
             startMicroTask(taskText, durata, clickedElement) {
@@ -2537,13 +2727,39 @@
                 const subject = APP.curriculum.find(s => s.id === subjectId);
                 if (!subject) return;
 
-                const conferma = confirm(`Sei sicuro di voler eliminare "${subject.nome}" dal curriculum?`);
+                const conferma = confirm(`Sei sicuro di voler eliminare "${subject.nome}" dal curriculum?\n\nQuesta azione eliminerà anche la materia corrispondente dalla sezione Materie e tutti i dati associati.`);
                 
                 if (conferma) {
+                    // MIGLIORAMENTO: Elimina anche dalla pagina Materie
+                    const materiaCorrispondente = APP.materie.find(m => 
+                        m.nome === subject.nome && 
+                        m.anno === subject.anno && 
+                        (m.semestre === subject.semestre || subject.semestre === 'annuale')
+                    );
+                    
+                    if (materiaCorrispondente) {
+                        // Elimina anche eventuali esami associati
+                        APP.esami = APP.esami.filter(e => e.materiaId !== materiaCorrispondente.id);
+                        ExamManager.saveEsami();
+                        
+                        // Elimina la materia
+                        APP.materie = APP.materie.filter(m => m.id !== materiaCorrispondente.id);
+                        MaterieManager.saveMaterie();
+                        MaterieManager.loadMaterie();
+                    }
+                    
+                    // Elimina dal curriculum
                     APP.curriculum = APP.curriculum.filter(s => s.id !== subjectId);
                     this.saveCurriculum();
                     this.loadCurriculumData();
-                    Utils.showSuccessMessage('🗑️ Materia eliminata dal curriculum');
+                    
+                    // Aggiorna tutte le sezioni correlate
+                    SmartPlanner.generateTodaySchedule();
+                    PianoStudio.generatePianoStudio();
+                    Statistics.updateStatistiche();
+                    ExamManager.updateExamsSection();
+                    
+                    Utils.showSuccessMessage('🗑️ Materia eliminata completamente da curriculum e materie');
                 }
             }
         };
@@ -3891,7 +4107,115 @@
         }
 
         function showRatingModal() {
+            // Reset del modal
+            document.getElementById('sessionTypeStep').style.display = 'block';
+            document.getElementById('progressStep').classList.add('hidden');
+            document.getElementById('ratingStep').classList.add('hidden');
+            
+            // Reset selections
+            APP.sessionType = null;
+            APP.progressType = null;
+            document.getElementById('sessionNote').value = '';
+            document.getElementById('studiedPages').value = '';
+            document.getElementById('exercisesDone').value = '';
+            
+            // Reset button styles
+            resetButtonStyles();
+            
             document.getElementById('ratingModal').style.display = 'flex';
+        }
+
+        // NUOVE FUNZIONI per il tracking del progresso
+        function selectSessionType(type) {
+            APP.sessionType = type;
+            
+            // Reset button styles
+            document.getElementById('studySessionBtn').style.borderColor = 'var(--border)';
+            document.getElementById('reviewSessionBtn').style.borderColor = 'var(--border)';
+            document.getElementById('studySessionBtn').style.background = 'var(--bg-tertiary)';
+            document.getElementById('reviewSessionBtn').style.background = 'var(--bg-tertiary)';
+            
+            // Highlight selected
+            const selectedBtn = type === 'study' ? 'studySessionBtn' : 'reviewSessionBtn';
+            document.getElementById(selectedBtn).style.borderColor = 'var(--primary)';
+            document.getElementById(selectedBtn).style.background = 'rgba(139, 92, 246, 0.1)';
+            
+            // Procedi al prossimo step
+            setTimeout(() => {
+                document.getElementById('sessionTypeStep').style.display = 'none';
+                
+                if (type === 'study') {
+                    // Mostra step progresso solo per sessioni di studio
+                    document.getElementById('progressStep').classList.remove('hidden');
+                } else {
+                    // Vai direttamente al rating per sessioni di ripasso
+                    document.getElementById('ratingStep').classList.remove('hidden');
+                }
+            }, 300);
+        }
+
+        function selectProgressType(type) {
+            APP.progressType = type;
+            
+            // Reset button styles
+            document.getElementById('pagesStudyBtn').style.borderColor = 'var(--border)';
+            document.getElementById('exercisesBtn').style.borderColor = 'var(--border)';
+            document.getElementById('pagesStudyBtn').style.background = 'var(--bg-tertiary)';
+            document.getElementById('exercisesBtn').style.background = 'var(--bg-tertiary)';
+            
+            // Hide all inputs
+            document.getElementById('pagesInput').classList.add('hidden');
+            document.getElementById('exercisesInput').classList.add('hidden');
+            
+            // Show selected input and highlight button
+            if (type === 'pages') {
+                document.getElementById('pagesStudyBtn').style.borderColor = 'var(--primary)';
+                document.getElementById('pagesStudyBtn').style.background = 'rgba(139, 92, 246, 0.1)';
+                document.getElementById('pagesInput').classList.remove('hidden');
+                document.getElementById('studiedPages').focus();
+            } else {
+                document.getElementById('exercisesBtn').style.borderColor = 'var(--primary)';
+                document.getElementById('exercisesBtn').style.background = 'rgba(139, 92, 246, 0.1)';
+                document.getElementById('exercisesInput').classList.remove('hidden');
+                document.getElementById('exercisesDone').focus();
+            }
+            
+            // MIGLIORAMENTO: Auto-proceed al rating step solo dopo che l'utente ha inserito qualcosa
+            const targetInput = type === 'pages' ? 'studiedPages' : 'exercisesDone';
+            const inputElement = document.getElementById(targetInput);
+            
+            // Listener per procedere automaticamente quando l'utente inserisce un valore
+            const proceedToRating = () => {
+                if (inputElement.value && parseInt(inputElement.value) > 0) {
+                    setTimeout(() => {
+                        document.getElementById('progressStep').classList.add('hidden');
+                        document.getElementById('ratingStep').classList.remove('hidden');
+                    }, 500);
+                    inputElement.removeEventListener('input', proceedToRating);
+                }
+            };
+            
+            inputElement.addEventListener('input', proceedToRating);
+            
+            // Fallback: procedi comunque dopo 10 secondi se l'utente non inserisce nulla
+            setTimeout(() => {
+                if (!document.getElementById('ratingStep').classList.contains('hidden')) return;
+                document.getElementById('progressStep').classList.add('hidden');
+                document.getElementById('ratingStep').classList.remove('hidden');
+                inputElement.removeEventListener('input', proceedToRating);
+            }, 10000);
+        }
+
+        function resetButtonStyles() {
+            // Reset tutti gli stili dei bottoni
+            const buttons = ['studySessionBtn', 'reviewSessionBtn', 'pagesStudyBtn', 'exercisesBtn'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.style.borderColor = 'var(--border)';
+                    btn.style.background = 'var(--bg-tertiary)';
+                }
+            });
         }
 
         function submitRating(rating) {
@@ -3906,13 +4230,32 @@
                 APP.sessionRatings[today][hour] = [];
             }
             
+            // MIGLIORAMENTO: Raccogli dati progresso
+            let progressData = {
+                sessionType: APP.sessionType || 'review',
+                progressType: APP.progressType,
+                studiedPages: 0,
+                exercisesDone: 0
+            };
+            
+            if (APP.sessionType === 'study' && APP.progressType) {
+                if (APP.progressType === 'pages') {
+                    progressData.studiedPages = parseInt(document.getElementById('studiedPages').value) || 0;
+                } else if (APP.progressType === 'exercises') {
+                    progressData.exercisesDone = parseInt(document.getElementById('exercisesDone').value) || 0;
+                    // Converte esercizi in pagine equivalenti (1 esercizio = 1 pagina)
+                    progressData.studiedPages = progressData.exercisesDone;
+                }
+            }
+            
             const sessionData = {
                 rating: rating,
                 note: sessionNote,
                 materia: APP.currentSessionData?.materia || 'Sessione generica',
                 option: APP.currentSessionData?.option || '',
                 timestamp: new Date().toISOString(),
-                duration: APP.timerState.workTime
+                duration: APP.timerState.workTime,
+                ...progressData
             };
             
             APP.sessionRatings[today][hour].push(sessionData);
@@ -3921,8 +4264,12 @@
             APP.todayDetailedSessions.push(sessionData);
             localStorage.setItem('todayDetailedSessions', JSON.stringify(APP.todayDetailedSessions));
             
+            // MIGLIORAMENTO: Aggiorna progresso materia se è una sessione di studio
+            if (APP.sessionType === 'study' && progressData.studiedPages > 0 && APP.currentSessionData?.materia) {
+                updateMateriaProgress(APP.currentSessionData.materia, progressData.studiedPages);
+            }
+            
             document.getElementById('ratingModal').style.display = 'none';
-            document.getElementById('sessionNote').value = '';
             
             Sessions.updateAllTodaySessionsList();
             Calendar.renderCalendar();
@@ -3934,7 +4281,38 @@
                 '🔥 Fantastico! Sei in zona di massima produttività!'
             ];
             
-            Utils.showSuccessMessage(messages[rating - 1]);
+            let finalMessage = messages[rating - 1];
+            if (APP.sessionType === 'study' && progressData.studiedPages > 0) {
+                finalMessage += ` +${progressData.studiedPages} pagine completate! 📚`;
+            }
+            
+            Utils.showSuccessMessage(finalMessage);
+        }
+
+        // NUOVA FUNZIONE: Aggiorna progresso materia
+        function updateMateriaProgress(materiaName, pagineStudiate) {
+            const materia = APP.materie.find(m => m.nome === materiaName && m.status !== 'completato');
+            
+            if (materia && pagineStudiate > 0) {
+                const oldProgress = materia.pagineStudiate || 0;
+                const newProgress = Math.min(oldProgress + pagineStudiate, materia.pagine);
+                
+                materia.pagineStudiate = newProgress;
+                MaterieManager.saveMaterie();
+                
+                // Aggiorna visualizzazioni
+                MaterieManager.loadMaterie();
+                SmartPlanner.generateTodaySchedule();
+                PianoStudio.generatePianoStudio();
+                Statistics.updateStatistiche();
+                
+                // Notifica se materia completata
+                if (newProgress === materia.pagine) {
+                    setTimeout(() => {
+                        Utils.showSuccessMessage(`🎉 Complimenti! Hai completato lo studio di ${materiaName}! Ora puoi sostenere l'esame.`);
+                    }, 1000);
+                }
+            }
         }
 
         function updateStreakDisplay() {
@@ -4410,6 +4788,8 @@
         // === NOTIFICHE ===
         function hideNotification() {
             document.getElementById('notificationBanner').classList.remove('show');
+            // CORREZIONE: Salva che l'utente ha chiuso manualmente la notifica
+            localStorage.setItem('lastNotificationDate', new Date().toDateString());
         }
 
         function updateAutoBackup() {
